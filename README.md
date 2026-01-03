@@ -1,26 +1,39 @@
-# Auditoria CCI (Controlo de Infeção)
+# CCI Audit Tool
 
-Ferramenta de auditoria móvel para registo de práticas de Higiene das Mãos e Uso de Luvas em ambiente hospitalar.
+Uma ferramenta mobile-first simples e eficiente para auditoria de **Higiene das Mãos** e **Uso de Luvas** em contexto clínico.
 
 ## Funcionalidades
-- **Modo Offline/Standalone**: Funciona como um único ficheiro HTML (`index.html`), sem necessidade de servidor.
-- **Auditoria Híbrida**: Suporta registo de Higiene das Mãos e Uso de Luvas na mesma sessão.
-- **Interface Mobile-First**: Design otimizado para telemóveis com botões grandes e navegação fluida.
-- **Relatório Automático**: Gera um resumo da sessão com:
-  - Total de observações.
-  - Detalhe de cada observação (Indicações vs Ação, Respostas do Checklist de Luvas).
-  - Data e Hora formatadas (PT-PT).
-- **Sticky Footer**: Botões de ação rápida ("Salvar", "Finalizar") sempre visíveis.
-- **Histórico Local**: As sessões são guardadas no `localStorage` do navegador.
 
-## Estrutura do Projeto
-- `index.html`: **[Versão Principal]** Aplicação completa em um só ficheiro. Contém todo o HTML, CSS (Tailwind via CDN) e JavaScript. Basta abrir este ficheiro no browser para usar.
-- `src/`: Código fonte da versão React (em desenvolvimento/alternativa).
+*   **Design Responsivo**: Otimizado para dispositivos móveis, funcionando como uma app nativa.
+*   **Dois Modos de Auditoria**:
+    *   👋 **Higiene das Mãos**: Registo de indicações e ações (fricção, lavagem, etc.).
+    *   🧤 **Uso de Luvas**: Checklist detalhada de critérios de seleção, uso e remoção.
+*   **Fluxo de Trabalho Simplificado**:
+    *   Seleção rápida de categoria profissional (Enfermeiro, Médico, Assist. Oper.).
+    *   Validação imediata de dados.
+    *   Relatórios de sessão instantâneos.
+*   **Persistência Local**: Histórico de auditorias salvo no navegador (LocalStorage).
+*   **Exportação**: Impressão de relatórios ou guardar como PDF.
 
 ## Como Usar
-1. Abra o ficheiro `index.html` no seu navegador (Chrome, Safari, etc.).
-2. Selecione o Tipo de Auditoria (Higiene, Luvas ou Ambos).
-3. Selecione a Categoria Profissional.
-4. Inicie a Sessão.
-5. Registe as observações e clique em "Salvar Observação".
-6. Ao terminar, clique em "Finalizar Sessão" para ver o relatório.
+
+1.  Abra o ficheiro `index.html` em qualquer navegador moderno.
+2.  Selecione o tipo de auditoria e a categoria profissional.
+3.  Preencha a auditoria (clique nos itens para selecionar/responder).
+4.  Clique em "Salvar e Fechar Sessão" para gerar o relatório.
+
+## Tecnologias
+
+*   **HTML5 / JavaScript (Vanilla)**: Sem dependências de build complexas, apenas um ficheiro.
+*   **Tailwind CSS**: Estilo moderno via CDN.
+*   **Phosphor Icons / Heroicons**: Ícones SVG inline.
+
+## Instalação / Desenvolvimento
+
+Não é necessária instalação. Basta clonar o repositório e abrir o `index.html`.
+
+```bash
+git clone https://github.com/andrebarros-design/cci-audit-tool.git
+cd cci-audit-tool
+# Abra index.html no seu browser
+```
