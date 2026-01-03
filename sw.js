@@ -1,9 +1,8 @@
-const CACHE_NAME = 'cci-audit-v1';
+const CACHE_NAME = 'cci-audit-v2';
 const ASSETS = [
     './',
     './index.html',
-    './icon-192.png',
-    './icon-512.png',
+    './icon.svg',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
 ];
