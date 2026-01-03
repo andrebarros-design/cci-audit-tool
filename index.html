@@ -1,1084 +1,208 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoria CCI - Relatório</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            overflow-y: scroll;
-        }
-
-        /* Animations */
-        .fade-enter {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .slide-in {
-            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-
-
-        /* Print Styles */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-
-            .print-only {
-                display: block !important;
-            }
-
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .shadow-sm,
-            .shadow-md,
-            .shadow-xl {
-                box-shadow: none !important;
-            }
-
-            .border {
-                border-color: #e2e8f0 !important;
-            }
-        }
-    </style>
-    <script>
-        tailwind.config = {
-            future: {
-                hoverOnlyWhenSupported: true,
-            },
-            theme: {
-                extend: {
-                    colors: {
-                        hygiene: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488' },
-                        gloves: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed' }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoria CCI - Relatório</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent;}
+html{overflow-y:scroll;}
+.fade-enter{animation:fadeIn 0.3s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.slide-in{animation:slideIn 0.3s cubic-bezier(0.16,1,0.3,1);}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@media print{.no-print{display:none!important;}.print-only{display:block!important;}body{background:white;padding:0;}.shadow-sm,.shadow-md,.shadow-xl{box-shadow:none!important;}.border{border-color:#e2e8f0!important;}}
+</style>
+<script>
+tailwind.config={future:{hoverOnlyWhenSupported:true,},theme:{extend:{colors:{hygiene:{50:'#f0fdfa',100:'#ccfbf1',500:'#14b8a6',600:'#0d9488'},gloves:{50:'#f5f3ff',100:'#ede9fe',500:'#8b5cf6',600:'#7c3aed'}}}}}
+</script>
+<link rel="manifest" href="manifest.json">
 </head>
-
 <body class="bg-slate-50 min-h-screen pb-20 print:pb-0">
-
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm no-print">
-        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 class="text-lg font-bold text-slate-800">
-                <button onclick="handleHomeClick()" class="flex items-center gap-2 hover:opacity-75 transition-opacity">
-                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Auditoria CCI
-                </button>
-            </h1>
-
-            <div id="headerActions">
-                <!-- Injected dynamically based on view -->
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-md mx-auto px-4 py-4 space-y-4 print:max-w-none print:p-8">
-
-        <!-- VIEW: SETUP -->
-        <div id="viewSetup" class="space-y-6 fade-enter">
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-6">
-                <h2 class="font-semibold text-slate-800 flex items-center gap-2 text-lg">
-                    Configuração da Sessão
-                </h2>
-
-                <!-- Audit Type -->
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo de Auditoria</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="setAuditType('hygiene')" id="type-hygiene"
-                            class="type-btn p-3 rounded-xl border transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 bg-teal-50 border-teal-500 text-teal-700 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
-                            <span class="text-xl">👋</span>
-                            <span class="text-xs font-bold">Higiene</span>
-                        </button>
-                        <button onclick="setAuditType('gloves')" id="type-gloves"
-                            class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40">
-                            <span class="text-xl">🧤</span>
-                            <span class="text-xs font-bold">Luvas</span>
-                        </button>
-                        <button onclick="setAuditType('both')" id="type-both"
-                            class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/40">
-                            <div class="flex text-lg"><span>👋</span><span>🧤</span></div>
-                            <span class="text-xs font-bold">Ambos</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Inputs -->
-                <div class="space-y-3">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categoria
-                            Profissional</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setSessionRole('Enf')" id="role-Enf"
-                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Enfermeiro</button>
-                            <button onclick="setSessionRole('Med')" id="role-Med"
-                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Médico</button>
-                            <button onclick="setSessionRole('Assist')" id="role-Assist"
-                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Assist.
-                                Oper.</button>
-                        </div>
-                    </div>
-
-
-                </div>
-
-                <button onclick="startSession()"
-                    class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 active:scale-[0.98] transition-colors transition-transform shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Iniciar Sessão
-                </button>
-            </div>
-        </div>
-
-        <!-- VIEW: HISTORY -->
-        <div id="viewHistory" class="hidden fade-enter">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-                <!-- Header -->
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <button onclick="showView('setup')"
-                            class="p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                        </button>
-                        <h2 class="text-xl font-bold text-slate-900">Histórico</h2>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <button onclick="exportHistory()"
-                            class="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                            title="Fazer Backup">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                        </button>
-                        <button onclick="triggerImport()"
-                            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Restaurar Backup">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m-4-4v12" />
-                            </svg>
-                        </button>
-                        <button onclick="clearHistory()"
-                            class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Limpar Histórico">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- List -->
-                <div id="historyList" class="space-y-3">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-        </div>
-        <input type="file" id="importFile" accept=".json" class="hidden" onchange="handleImport(event)">
-
-        <!-- VIEW: ACTIVE SESSION -->
-        <div id="viewActive" class="hidden space-y-4 fade-enter">
-
-            <!-- Active Session Info -->
-            <div
-                class="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between text-sm mx-auto">
-                <div class="flex gap-4">
-                    <div>
-                        <span class="text-slate-400 text-[10px] uppercase font-bold block">Observador</span>
-                        <span id="activeObserver" class="font-bold text-slate-800">AB</span>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Tab Switcher (Only visible to Both) -->
-            <div id="tabSwitcher" class="hidden relative flex p-1 bg-slate-200/50 rounded-xl overflow-hidden">
-                <button onclick="setActiveTab('hygiene')" id="tab-hygiene"
-                    class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-colors text-teal-700">Higiene</button>
-                <button onclick="setActiveTab('gloves')" id="tab-gloves"
-                    class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-colors text-slate-500 hover:text-slate-700">Luvas</button>
-
-                <!-- Sliding Highligher -->
-                <div id="tabHighlighter"
-                    class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-white rounded-lg shadow-sm border border-slate-200 transition-all duration-300">
-                </div>
-            </div>
-
-            <!-- FORMS CONTAINER -->
-            <div id="formsContainer" class="pb-48">
-                <!-- Hygiene Form -->
-                <div id="formHygiene" class="space-y-6 slide-in">
-                    <!-- Indications -->
-                    <!-- Indications -->
-                    <section>
-                        <h3 class="font-semibold text-slate-800 mb-2 px-1">Indicações</h3>
-                        <div id="indicationsList" class="space-y-2"></div>
-                    </section>
-                    <!-- Actions -->
-                    <section>
-                        <h3 class="font-semibold text-slate-800 mb-2 px-1">Ação</h3>
-                        <div id="actionsList" class="grid grid-cols-2 gap-3"></div>
-                    </section>
-                </div>
-
-                <!-- Gloves Form -->
-                <div id="formGloves" class="hidden space-y-6 slide-in pt-4">
-                    <!-- Checklist -->
-                    <div id="glovesList" class="space-y-3"></div>
-                </div>
-
-                <!-- Bottom Padding for Fixed Footer -->
-
-            </div>
-        </div>
-
-        <!-- Fixed Bottom Buttons -->
-        <div id="activeFooter"
-            class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200 z-50 no-print transition-all duration-300">
-            <div class="max-w-md mx-auto space-y-3">
-                <button onclick="saveAndFinish()" id="saveBtn"
-                    class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-colors transition-transform flex items-center justify-center gap-2 border border-teal-600 hover:bg-teal-700">
-                    Salvar e Fechar Sessão
-                </button>
-
-                <button onclick="discardSession()"
-                    class="w-full bg-white border border-rose-200 text-rose-600 font-bold py-4 rounded-xl hover:bg-rose-50 transition-colors flex items-center justify-center gap-2">
-                    Descartar Sessão
-                </button>
-            </div>
-        </div>
-
-        <!-- VIEW: SUMMARY -->
-        <div id="viewSummary" class="hidden space-y-6 fade-enter">
-            <div
-                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6 print:border-none print:shadow-none print:p-0">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <button id="summaryBackBtn" onclick="showView('history')"
-                            class="hidden p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors no-print">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                        </button>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900">Relatório de Sessão</h2>
-                            <p id="summaryDate" class="text-slate-500 text-sm"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Single Line Info Header -->
-                <!-- Stacked Info Header -->
-                <!-- Unified Stats Card -->
-                <div
-                    class="bg-slate-50 rounded-2xl p-6 border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mt-2 print:border-none print:p-0 print:bg-white">
-
-                    <!-- Left: Metadata -->
-                    <div class="space-y-4 w-full sm:w-auto">
-                        <div>
-                            <span
-                                class="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">Observador</span>
-                            <span id="sumObserver" class="block font-bold text-slate-900 text-lg leading-none"></span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">Tipo
-                                de Auditoria</span>
-                            <span id="sumType"
-                                class="block font-bold text-slate-900 text-lg leading-none capitalize"></span>
-                        </div>
-                    </div>
-
-                    <!-- Right: Key Metric -->
-                    <div
-                        class="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 pt-4 sm:pt-0 sm:pl-8">
-                        <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0 sm:mb-1">Total
-                            Registos</span>
-                        <span id="sumCount" class="font-black text-4xl text-teal-600 leading-none"></span>
-                    </div>
-
-                </div>
-
-                <div id="summaryList" class="space-y-3">
-                    <!-- Cards injected here -->
-                </div>
-            </div>
-
-            <div class="flex gap-3 no-print">
-                <button onclick="window.print()"
-                    class="flex-1 bg-white border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Imprimir / PDF
-                </button>
-                <button onclick="showView('setup')"
-                    class="flex-1 bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-colors">
-                    Sair
-                </button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="py-8 text-center text-[10px] text-slate-400 no-print">
-        <p>
-            Designed & Developed by <a href="mailto:theandrebarros@gmail.com"
-                class="font-bold text-slate-500 hover:text-slate-800 transition-colors">Andre Barros</a> © <span
-                id="copyrightYear"></span>
-        </p>
-        <script>document.getElementById('copyrightYear').innerText = new Date().getFullYear();</script>
-    </footer>
-
-    <!-- Exit Confirmation Overlay -->
-    <div id="exitOverlay"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 fade-enter">
-        <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center">
-            <div
-                class="mx-auto w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-            <h3 class="text-lg font-bold text-slate-800">Aviso</h3>
-            <p class="text-slate-600 text-sm">Está a tentar voltar para a página inicial. Escolha a opção abaixo:</p>
-
-            <div class="space-y-3 pt-2">
-                <button onclick="saveAndExit()"
-                    class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">
-                    Salvar e Fechar Sessão
-                </button>
-                <button onclick="discardAndExit()"
-                    class="w-full bg-white border border-rose-200 text-rose-600 font-bold py-3 rounded-xl hover:bg-rose-50 transition-colors">
-                    Descartar Sessão
-                </button>
-                <button onclick="closeExitOverlay()"
-                    class="w-full text-slate-400 font-medium text-xs pt-2 hover:text-slate-600">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- CONSTANTS ---
-        const INDICATIONS = [
-            { id: 1, label: "Antes do contacto com o doente", icon: "👋" },
-            { id: 2, label: "Antes de um procedimento asséptico", icon: "💉" },
-            { id: 3, label: "Depois de risco de exposição a sangue e fluidos corporais", icon: "🩸" },
-            { id: 4, label: "Depois do contacto com o doente", icon: "🤝" },
-            { id: 5, label: "Depois do contacto com o ambiente envolvente do doente", icon: "🛏️" },
-        ];
-        const ACTIONS = [
-            { id: 'Fricção', label: "Fricção anti-séptica", theme: "emerald" },
-            { id: 'Lavagem', label: "Lavagem", theme: "blue" },
-            { id: 'Missed', label: "Não realizado", theme: "red" },
-            { id: 'Luvas', label: "Luvas", theme: "purple" }
-        ];
-
-        // --- DESIGN SYSTEM ---
-        const THEME = {
-            base: "rounded-xl border transition-colors transition-transform duration-200 shadow-sm focus:outline-none focus-visible:ring-2 cursor-pointer select-none active:scale-[0.98]",
-            inactive: "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md active:bg-slate-50",
-            active: {
-                teal: "bg-teal-50 border-teal-500 text-teal-700 hover:bg-teal-100 focus-visible:ring-teal-500/50",
-                violet: "bg-violet-50 border-violet-500 text-violet-700 hover:bg-violet-100 focus-visible:ring-violet-500/50",
-                slate: "bg-slate-100 border-slate-500 text-slate-800 hover:bg-slate-200 focus-visible:ring-slate-500/50",
-                emerald: "bg-emerald-50 border-emerald-500 text-emerald-700 hover:bg-emerald-100 focus-visible:ring-emerald-500/50",
-                blue: "bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-100 focus-visible:ring-blue-500/50",
-                red: "bg-red-50 border-red-500 text-red-700 hover:bg-red-100 focus-visible:ring-red-500/50",
-                purple: "bg-purple-50 border-purple-500 text-purple-700 hover:bg-purple-100 focus-visible:ring-purple-500/50"
-            }
-        };
-
-        function getThemeClass(isActive, colorKey, extra = '') {
-            let stateClass = THEME.inactive;
-            if (isActive) {
-                stateClass = THEME.active[colorKey] || THEME.active.slate;
-            } else {
-                // Dynamic Hover for Inactive State
-                const hoverMap = {
-                    teal: 'hover:bg-teal-50',
-                    violet: 'hover:bg-violet-50',
-                    slate: 'hover:bg-slate-100',
-                    emerald: 'hover:bg-emerald-50',
-                    blue: 'hover:bg-blue-50',
-                    red: 'hover:bg-red-50',
-                    purple: 'hover:bg-purple-50'
-                };
-                stateClass += ` ${hoverMap[colorKey] || 'hover:bg-slate-50'}`;
-            }
-            return `${THEME.base} ${stateClass} ${extra}`.trim();
-        }
-        const GLOVE_GROUPS = [
-            {
-                title: "Critérios 1 a 6: Selecção / Colocação",
-                items: [
-                    { id: 1, text: "Selecciona as luvas adequadas ao procedimento" },
-                    { id: 2, text: "Higieniza as mãos antes de colocar as luvas" },
-                    { id: 3, text: "Coloca as luvas imediatamente antes de iniciar o procedimento" },
-                    { id: 4, text: "Coloca as luvas com técnica adequada garantido a sua não contaminação" },
-                    { id: 5, text: "Utiliza duplo par de luvas em situação de risco particularmente elevado" },
-                    { id: 6, text: "Utiliza luvas de punho alto e/ou cobre a bata com a luva em situação de elevado risco de exposição a fluidos orgânicos" }
-                ]
-            },
-            {
-                title: "Critérios 7 a 13: Uso / Substituição",
-                items: [
-                    { id: 7, text: "Utiliza luvas limpas descartáveis na exposição direta" },
-                    { id: 8, text: "Utiliza luvas limpas descartáveis na exposição indireta" },
-                    { id: 9, text: "Utiliza luvas esterilizadas em procedimento invasivo/cirúrgico" },
-                    { id: 10, text: "Utiliza luvas reutilizáveis de uso individual em procedimento de descontaminação ambiental/DM" },
-                    { id: 11, text: "Troca de luvas entre procedimentos no mesmo doente" },
-                    { id: 12, text: "Retira as luvas após o procedimento" },
-                    { id: 13, text: "Toca no ambiente envolvente (superfícies, materiais e equipamentos) sem luvas" }
-                ]
-            },
-            {
-                title: "Critérios 14 a 17: Remoção",
-                items: [
-                    { id: 14, text: "Remove as luvas com técnica adequada, prevenindo a sua contaminação e do ambiente" },
-                    { id: 15, text: "Remove as luvas pela ordem indicada, quando utilizadas conjuntamente com outros EPIs" },
-                    { id: 16, text: "Descarta as luvas de acordo com a norma interna de triagem dos resíduos" },
-                    { id: 17, text: "Higieniza as mãos imediatamente após a remoção das luvas" }
-                ]
-            }
-        ];
-
-        // --- STATE ---
-        let appState = {
-            view: 'setup',
-            auditType: 'hygiene', // hygiene, gloves, both
-            activeTab: 'hygiene',
-            sessionRole: '' // Med, Enf, Assist
-        };
-
-        let session = {
-            active: false,
-            startTime: null,
-            observer: '', // Unused/Hidden
-            role: '', // Store session role
-            observations: []
-        };
-
-        let currentObs = {
-            hygiene: { indications: [], actions: [] },
-            gloves: { answers: {} }
-        };
-
-        // --- INIT ---
-        function init() {
-            renderIndications();
-            renderActions();
-            renderGloves();
-            renderHeader();
-        }
-
-        // --- RENDERERS ---
-        function renderHeader() {
-            const container = document.getElementById('headerActions');
-            if (appState.view === 'setup') {
-                container.innerHTML = `
-                    <button onclick="showView('history')" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors flex items-center gap-1">
-                        ⏱️ Histórico
-                    </button>`;
-            } else if (appState.view === 'active') {
-                container.innerHTML = `
-                    <button onclick="handleHomeClick()" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full hover:bg-rose-100 transition-colors flex items-center gap-1 border border-rose-100">
-                        🛑 Finalizar
-                    </button>`;
-            } else {
-                container.innerHTML = '';
-            }
-        }
-
-        function renderIndications() {
-            document.getElementById('indicationsList').innerHTML = INDICATIONS.map(i => `
-                <button onclick="toggleIndication(${i.id})" id="ind-${i.id}" class="${getThemeClass(false, 'teal', 'w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]')}">
-                    <span class="text-xl">${i.icon}</span>
-                    <span class="text-sm font-medium flex-1">${i.label}</span>
-                    <div class="chk-circle w-5 h-5 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center transition-colors">
-                        <svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-                </button>
-            `).join('');
-        }
-
-        function renderActions() {
-            document.getElementById('actionsList').innerHTML = ACTIONS.map(a => `
-                <button onclick="toggleAction('${a.id}')" id="act-${a.id}" class="${getThemeClass(false, a.theme, 'p-4 text-center font-bold text-sm')}">
-                    ${a.label}
-                </button>
-            `).join('');
-        }
-
-        function renderGloves() {
-            document.getElementById('glovesList').innerHTML = GLOVE_GROUPS.map((g, gi) => `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="bg-indigo-50/50 p-2 px-3 border-b border-indigo-100 flex items-center gap-2">
-                        <span class="text-[10px] font-bold uppercase text-indigo-500 bg-white px-1.5 py-0.5 rounded border border-indigo-100">${gi + 1}</span>
-                        <span class="text-xs font-bold text-slate-700">${g.title}</span>
-                    </div>
-                    <div class="p-3 space-y-4">
-                        ${g.items.map(item => `
-                            <div>
-                                <p class="text-sm text-slate-700 mb-2 leading-tight font-medium">${item.text}</p>
-                                <div class="flex bg-slate-100 p-0.5 rounded-lg">
-                                    <button onclick="ansGlove(${item.id}, 'yes')" id="glove-${item.id}-yes" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">Sim</button>
-                                    <button onclick="ansGlove(${item.id}, 'no')" id="glove-${item.id}-no" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">Não</button>
-                                    <button onclick="ansGlove(${item.id}, 'na')" id="glove-${item.id}-na" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">N/A</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- LOGIC: SETUP ---
-        function setAuditType(type) {
-            appState.auditType = type;
-            const types = ['hygiene', 'gloves', 'both'];
-            const themes = { hygiene: 'teal', gloves: 'violet', both: 'slate' };
-
-            types.forEach(t => {
-                const isActive = t === type;
-                const cls = getThemeClass(isActive, themes[t], 'p-3 flex flex-col items-center gap-2');
-                document.getElementById(`type-${t}`).className = 'type-btn ' + cls;
-            });
-        }
-
-        function setSessionRole(role) {
-            appState.sessionRole = role;
-            const roles = ['Enf', 'Med', 'Assist'];
-            roles.forEach(r => {
-                const isActive = r === role;
-                const cls = getThemeClass(isActive, 'teal', 'p-3 font-bold text-sm');
-                const el = document.getElementById(`role-${r}`);
-                if (el) el.className = 'role-btn ' + cls;
-            });
-        }
-
-        function startSession() {
-            const role = appState.sessionRole;
-
-            if (!role) { alert("Selecione a Categoria Profissional."); return; }
-
-            session = {
-                active: true,
-                startTime: new Date().toISOString(),
-                auditType: appState.auditType,
-                role: role,
-                observations: []
-            };
-
-            // Setup UI
-            const roleLabels = { 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' };
-
-            document.getElementById('activeObserver').innerText = roleLabels[role] || role;
-
-            // Configure Tabs
-            const tabSwitcher = document.getElementById('tabSwitcher');
-            const hForm = document.getElementById('formHygiene');
-            const gForm = document.getElementById('formGloves');
-
-            if (appState.auditType === 'both') {
-                tabSwitcher.classList.remove('hidden');
-                setActiveTab('hygiene');
-            } else if (appState.auditType === 'gloves') {
-                tabSwitcher.classList.add('hidden');
-                hForm.classList.add('hidden');
-                gForm.classList.remove('hidden');
-                appState.activeTab = 'gloves';
-                appState.activeTab = 'gloves';
-            } else {
-                tabSwitcher.classList.add('hidden');
-                hForm.classList.remove('hidden');
-                gForm.classList.add('hidden');
-                appState.activeTab = 'hygiene';
-            }
-
-            // Clean Arrays
-            currentObs.hygiene = { indications: [], actions: [] };
-            currentObs.gloves = { answers: {} };
-            resetHygieneUI();
-            resetGlovesUI();
-
-            showView('active');
-        }
-
-        function setActiveTab(tab) {
-            appState.activeTab = tab;
-            const highlighter = document.getElementById('tabHighlighter');
-            const btnH = document.getElementById('tab-hygiene');
-            const btnG = document.getElementById('tab-gloves');
-            const formH = document.getElementById('formHygiene');
-            const formG = document.getElementById('formGloves');
-
-            if (tab === 'hygiene') {
-                highlighter.style.transform = 'translateX(0)';
-                btnH.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-teal-700';
-                btnG.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';
-                formH.classList.remove('hidden');
-                formG.classList.add('hidden');
-
-            } else {
-                highlighter.style.transform = 'translateX(100%)';
-                btnH.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';
-                btnG.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-violet-700';
-                formH.classList.add('hidden');
-                formG.classList.remove('hidden');
-            }
-        }
-
-
-
-
-
-        function toggleIndication(id) {
-            const list = currentObs.hygiene.indications;
-            if (list.includes(id)) {
-                currentObs.hygiene.indications = list.filter(i => i !== id);
-                document.getElementById(`ind-${id}`).className = getThemeClass(false, 'teal', 'w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]');
-
-                document.querySelector(`#ind-${id} .chk-circle`).classList.remove('bg-teal-500', 'border-teal-500');
-                document.querySelector(`#ind-${id} .chk-circle svg`).classList.add('hidden');
-            } else {
-                currentObs.hygiene.indications.push(id);
-                document.getElementById(`ind-${id}`).className = getThemeClass(true, 'teal', 'w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]');
-
-                document.querySelector(`#ind-${id} .chk-circle`).classList.add('bg-teal-500', 'border-teal-500');
-                document.querySelector(`#ind-${id} .chk-circle svg`).classList.remove('hidden');
-            }
-        }
-
-        function toggleAction(id) {
-            const list = currentObs.hygiene.actions;
-            const themeKey = ACTIONS.find(a => a.id === id)?.theme || 'teal';
-
-            if (list.includes(id)) {
-                currentObs.hygiene.actions = list.filter(a => a !== id);
-                document.getElementById(`act-${id}`).className = getThemeClass(false, themeKey, 'p-4 text-center font-bold text-sm');
-            } else {
-                currentObs.hygiene.actions.push(id);
-                document.getElementById(`act-${id}`).className = getThemeClass(true, themeKey, 'p-4 text-center font-bold text-sm');
-            }
-        }
-
-        function resetHygieneUI() {
-            currentObs.hygiene = { indications: [], actions: [] };
-            // Reset Inds
-            renderIndications();
-            // Reset Actions
-            renderActions();
-        }
-
-        // --- LOGIC: GLOVES FORM ---
-
-        function ansGlove(id, val) {
-            currentObs.gloves.answers[id] = val;
-            const ids = ['yes', 'no', 'na'];
-            const baseClass = 'flex-1 py-1.5 text-xs font-bold rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
-            const inactiveClass = 'text-slate-400 hover:bg-white hover:shadow-sm hover:text-slate-600 focus-visible:ring-slate-300';
-
-            ids.forEach(v => {
-                document.getElementById(`glove-${id}-${v}`).className = `${baseClass} ${inactiveClass}`;
-            });
-            const activeClass = val === 'yes' ? 'bg-emerald-100 text-emerald-700 shadow-sm hover:bg-emerald-200 focus-visible:ring-emerald-500' :
-                val === 'no' ? 'bg-red-100 text-red-700 shadow-sm hover:bg-red-200 focus-visible:ring-red-500' :
-                    'bg-slate-200 text-slate-700 shadow-sm hover:bg-slate-300 focus-visible:ring-slate-500';
-            document.getElementById(`glove-${id}-${val}`).className = `${baseClass} ${activeClass}`;
-        }
-
-        function resetGlovesUI() {
-            currentObs.gloves = { answers: {} };
-            renderGloves();
-        }
-
-        // --- LOGIC: MAIN ---
-        function saveAndFinish() {
-            const role = session.role;
-            let savedCount = 0;
-
-            // 1. Check Hygiene
-            const { indications, actions } = currentObs.hygiene;
-            const hasPartialHygiene = indications.length > 0 || actions.length > 0;
-            const isHygieneValid = indications.length > 0 && actions.length > 0;
-
-            if (hasPartialHygiene) {
-                if (!isHygieneValid) {
-                    alert("Atenção: O registo de Higiene está incompleto (Indicações + Ação).");
-                    return;
-                }
-                session.observations.push({
-                    id: Date.now(),
-                    timestamp: new Date().toISOString(),
-                    type: 'hygiene',
-                    role, indications: [...indications], actions: [...actions]
-                });
-                savedCount++;
-            }
-
-            // 2. Check Gloves
-            const { answers } = currentObs.gloves;
-            const hasGloves = Object.keys(answers).length > 0;
-
-            if (hasGloves) {
-                session.observations.push({
-                    id: Date.now() + (savedCount > 0 ? 1 : 0),
-                    timestamp: new Date().toISOString(),
-                    type: 'gloves',
-                    role, answers: { ...answers }
-                });
-                savedCount++;
-            }
-
-            // 3. Fallback / Validation if nothing saved
-            if (savedCount === 0) {
-                if (appState.activeTab === 'hygiene' && appState.auditType !== 'gloves') {
-                    alert("Complete o preenchimento de Higiene.");
-                } else if (appState.activeTab === 'gloves' && appState.auditType !== 'hygiene') {
-                    alert("Preencha o formulário de Luvas.");
-                } else {
-                    alert("Sem dados para salvar. Preencha pelo menos um dos formulários.");
-                }
-                return;
-            }
-
-            // Save to Storage & Show Summary
-            const history = JSON.parse(localStorage.getItem('cci_history') || '[]');
-            history.push(session);
-            localStorage.setItem('cci_history', JSON.stringify(history));
-
-            showSummary(session);
-        }
-
-        function discardSession() {
-            if (confirm("Tem a certeza que deseja descartar esta sessão?")) {
-                showView('setup');
-            }
-        }
-
-        function showSummary(sess, isFromHistory = false) {
-            // Show/Hide Back Button
-            const backBtn = document.getElementById('summaryBackBtn');
-            if (backBtn) {
-                if (isFromHistory) backBtn.classList.remove('hidden');
-                else backBtn.classList.add('hidden');
-            }
-
-            showView('summary');
-            // Set Date
-            const d = new Date(sess.startTime || Date.now());
-            const dateStr = d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
-            const dateEl = document.getElementById('summaryDate');
-            if (dateEl) dateEl.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-
-            const roleLabels = { 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' };
-            document.getElementById('sumObserver').innerText = roleLabels[sess.role] || sess.role || sess.observer;
-
-            const typeLabels = { 'hygiene': 'Higiene das Mãos', 'gloves': 'Uso de Luvas', 'both': 'Higiene + Luvas' };
-            document.getElementById('sumType').innerText = typeLabels[appState.auditType] || appState.auditType;
-
-            document.getElementById('sumCount').innerText = sess.observations.length;
-
-            const list = document.getElementById('summaryList');
-            if (sess.observations.length === 0) {
-                list.innerHTML = '<div class="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Sem registos nesta sessão.</div>';
-            } else {
-                // Helpers for detail lookup
-                const glvMap = {}; GLOVE_GROUPS.forEach(g => g.items.forEach(i => glvMap[i.id] = i.text));
-                const indMap = {}; INDICATIONS.forEach(i => indMap[i.id] = i.label);
-
-                list.innerHTML = sess.observations.map((o, i) => {
-                    const time = new Date(o.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-                    let detailHtml = '';
-
-                    if (o.type === 'hygiene') {
-                        // Group 1: Indications
-                        const indicationsHtml = o.indications.map(id => {
-                            const text = indMap[id] || id;
-                            return `<div class="flex justify-between items-center py-2 pl-2 pr-2">
-                                <span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${text}</span>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">Sim</span>
-                            </div>`;
-                        }).join('');
-
-                        // Group 2: Actions
-                        const actionsHtml = o.actions.map(actId => {
-                            const text = ACTIONS.find(a => a.id === actId)?.label || actId;
-                            return `<div class="flex justify-between items-center py-2 pl-2 pr-2">
-                                <span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${text}</span>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">Sim</span>
-                            </div>`;
-                        }).join('');
-
-                        detailHtml = `
-                            <div class="mt-3 bg-slate-50/50 rounded-lg border border-slate-200 p-3">
-                                <!-- INDICATIONS GROUP -->
-                                <div class="mb-4">
-                                    <div class="mb-2">
-                                        <span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">
-                                            Indicações
-                                        </span>
-                                    </div>
-                                    <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">
-                                        ${indicationsHtml || '<div class="p-2 text-xs text-slate-400 italic">Nenhuma selecionada</div>'}
-                                    </div>
-                                </div>
-
-                                <!-- ACTIONS GROUP -->
-                                <div class="mb-0">
-                                    <div class="mb-2">
-                                        <span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">
-                                            Acções
-                                        </span>
-                                    </div>
-                                    <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">
-                                        ${actionsHtml || '<div class="p-2 text-xs text-slate-400 italic">Nenhuma selecionada</div>'}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        const answersHtml = GLOVE_GROUPS.map((g, gi) => {
-                            const groupAnswers = g.items.filter(item => o.answers[item.id]).map(item => {
-                                const val = o.answers[item.id];
-                                const label = val === 'yes' ? 'Sim' : val === 'no' ? 'Não' : 'N/A';
-                                const badgeClass = val === 'yes' ? 'bg-teal-100 text-teal-800' : val === 'no' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600';
-                                return `<div class="flex justify-between items-center py-2 pl-2 pr-2">
-                                    <span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${item.text}</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${label}</span>
-                                </div>`;
-                            }).join('');
-
-                            if (!groupAnswers) return '';
-
-                            return `
-                                <div class="mb-4 last:mb-0">
-                                    <div class="mb-2">
-                                        <span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">
-                                            <span class="mr-1 opacity-70">#${gi + 1}</span> ${g.title}
-                                        </span>
-                                    </div>
-                                    <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">
-                                        ${groupAnswers}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-
-                        detailHtml = `<div class="mt-3 bg-slate-50/50 rounded-lg border border-slate-200 p-3">${answersHtml}</div>`;
-                    }
-
-                    const typeBadge = o.type === 'hygiene'
-                        ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-50 text-teal-600 border border-teal-100 tracking-wide">Higiene</span>'
-                        : '<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-violet-50 text-violet-600 border border-violet-100 tracking-wide">Luvas</span>';
-
-                    return `
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm break-inside-avoid">
-                            <!-- Card Header -->
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-slate-300 text-xs font-bold">#${i + 1}</span>
-                                    <span class="font-bold text-slate-700 text-sm">${time}</span>
-                                    ${typeBadge}
-                                </div>
-                                <span class="text-xs font-bold text-slate-400">${roleLabels[o.role || sess.role] || o.role || sess.role}</span>
-                            </div>
-
-                            <!-- Card Content -->
-                            ${detailHtml}
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
-        function loadHistoryItem(idx) {
-            const sess = window.tempHistory[idx];
-            showSummary(sess, true);
-        }
-
-        function clearHistory() {
-            if (confirm("Apagar todo o histórico?")) {
-                localStorage.removeItem('cci_history');
-                refreshHistoryList();
-            }
-        }
-
-        function deleteHistoryItem(e, idx) {
-            e.stopPropagation(); // Prevent opening the report
-            if (confirm("Deseja apagar este registo permanentemente?")) {
-                const h = JSON.parse(localStorage.getItem('cci_history') || '[]');
-                if (idx > -1 && idx < h.length) {
-                    h.splice(idx, 1);
-                    localStorage.setItem('cci_history', JSON.stringify(h));
-                    refreshHistoryList();
-                }
-            }
-        }
-
-        // --- BACKUP & RESTORE ---
-        function exportHistory() {
-            const history = localStorage.getItem('cci_history') || '[]';
-            const data = {
-                version: 1,
-                timestamp: Date.now(),
-                source: 'CCI_Audit_Tool',
-                history: JSON.parse(history)
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const date = new Date().toISOString().split('T')[0];
-            
-            a.href = url;
-            a.download = `cci_audit_backup_${date}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function triggerImport() {
-            document.getElementById('importFile').click();
-        }
-
-        function handleImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const content = JSON.parse(e.target.result);
-                    
-                    // Validation
-                    let newHistory = [];
-                    if (Array.isArray(content)) {
-                        // Old format or direct array
-                        newHistory = content;
-                    } else if (content.history && Array.isArray(content.history)) {
-                        // New format wrapper
-                        newHistory = content.history;
-                    } else {
-                        throw new Error("Formato inválido");
-                    }
-
-                    if (confirm(`Encontradas ${newHistory.length} sessões no backup.\n\nATENÇÃO: Isto irá SUBSTITUIR o histórico atual no dispositivo.\n\nDeseja continuar?`)) {
-                        localStorage.setItem('cci_history', JSON.stringify(newHistory));
-                        refreshHistoryList();
-                        alert("Histórico restaurado com sucesso!");
-                    }
-                } catch (err) {
-                    alert("Erro ao ler o ficheiro: " + err.message);
-                }
-                // Reset input
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        // --- OVERLAY LOGIC ---
-        function handleHomeClick() {
-            if (appState.view === 'active' && session.active) {
-                // If session is active and has data, show warning
-                document.getElementById('exitOverlay').classList.remove('hidden');
-            } else {
-                // Otherwise just go home
-                showView('setup');
-            }
-        }
-
-        function closeExitOverlay() {
-            document.getElementById('exitOverlay').classList.add('hidden');
-        }
-
-        function saveAndExit() {
-            // Save current session to history
-            const history = JSON.parse(localStorage.getItem('cci_history') || '[]');
-            history.push(session);
-            localStorage.setItem('cci_history', JSON.stringify(history));
-
-            closeExitOverlay();
-            showView('setup');
-        }
-
-        function discardAndExit() {
-            closeExitOverlay();
-            showView('setup');
-        }
-
-        // Start
-        init();
-
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js', { scope: './' })
-                    .then(registration => console.log('SW Registered', registration))
-                    .catch(err => console.log('SW Failed', err));
-            });
-        }
-    </script>
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm no-print">
+<div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+<h1 class="text-lg font-bold text-slate-800">
+<button onclick="handleHomeClick()" class="flex items-center gap-2 hover:opacity-75 transition-opacity">
+<svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+Auditoria CCI
+</button>
+</h1>
+<div id="headerActions"></div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 py-4 space-y-4 print:max-w-none print:p-8">
+<div id="viewSetup" class="space-y-6 fade-enter">
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-6">
+<h2 class="font-semibold text-slate-800 flex items-center gap-2 text-lg">Configuração da Sessão</h2>
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo de Auditoria</label>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="setAuditType('hygiene')" id="type-hygiene" class="type-btn p-3 rounded-xl border transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 bg-teal-50 border-teal-500 text-teal-700 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">
+<span class="text-xl">👋</span><span class="text-xs font-bold">Higiene</span>
+</button>
+<button onclick="setAuditType('gloves')" id="type-gloves" class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40">
+<span class="text-xl">🧤</span><span class="text-xs font-bold">Luvas</span>
+</button>
+<button onclick="setAuditType('both')" id="type-both" class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] flex flex-col items-center gap-2 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500/40">
+<div class="flex text-lg"><span>👋</span><span>🧤</span></div><span class="text-xs font-bold">Ambos</span>
+</button>
+</div>
+</div>
+<div class="space-y-3">
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categoria Profissional</label>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="setSessionRole('Enf')" id="role-Enf" class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Enfermeiro</button>
+<button onclick="setSessionRole('Med')" id="role-Med" class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Médico</button>
+<button onclick="setSessionRole('Assist')" id="role-Assist" class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors transition-transform active:scale-[0.98] font-bold text-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40">Assist. Oper.</button>
+</div>
+</div>
+</div>
+<button onclick="startSession()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 active:scale-[0.98] transition-colors transition-transform shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Iniciar Sessão
+</button>
+</div>
+</div>
+<div id="viewHistory" class="hidden fade-enter">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button onclick="showView('setup')" class="p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+</button>
+<h2 class="text-xl font-bold text-slate-900">Histórico</h2>
+</div>
+<div class="flex items-center gap-1">
+<button onclick="exportHistory()" class="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" title="Fazer Backup">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+</button>
+<button onclick="triggerImport()" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Restaurar Backup">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m-4-4v12"/></svg>
+</button>
+<button onclick="clearHistory()" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Limpar Histórico">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+</button>
+</div>
+</div>
+<div id="historyList" class="space-y-3"></div>
+</div>
+</div>
+<input type="file" id="importFile" accept=".json" class="hidden" onchange="handleImport(event)">
+<div id="viewActive" class="hidden space-y-4 fade-enter">
+<div class="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between text-sm mx-auto">
+<div class="flex gap-4">
+<div><span class="text-slate-400 text-[10px] uppercase font-bold block">Observador</span><span id="activeObserver" class="font-bold text-slate-800">AB</span></div>
+</div>
+</div>
+<div id="tabSwitcher" class="hidden relative flex p-1 bg-slate-200/50 rounded-xl overflow-hidden">
+<button onclick="setActiveTab('hygiene')" id="tab-hygiene" class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-colors text-teal-700">Higiene</button>
+<button onclick="setActiveTab('gloves')" id="tab-gloves" class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-colors text-slate-500 hover:text-slate-700">Luvas</button>
+<div id="tabHighlighter" class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-white rounded-lg shadow-sm border border-slate-200 transition-all duration-300"></div>
+</div>
+<div id="formsContainer" class="pb-48">
+<div id="formHygiene" class="space-y-6 slide-in">
+<section><h3 class="font-semibold text-slate-800 mb-2 px-1">Indicações</h3><div id="indicationsList" class="space-y-2"></div></section>
+<section><h3 class="font-semibold text-slate-800 mb-2 px-1">Ação</h3><div id="actionsList" class="grid grid-cols-2 gap-3"></div></section>
+</div>
+<div id="formGloves" class="hidden space-y-6 slide-in pt-4">
+<div id="glovesList" class="space-y-3"></div>
+</div>
+</div>
+</div>
+<div id="activeFooter" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200 z-50 no-print transition-all duration-300">
+<div class="max-w-md mx-auto space-y-3">
+<button onclick="saveAndFinish()" id="saveBtn" class="w-full bg-teal-600 text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-colors transition-transform flex items-center justify-center gap-2 border border-teal-600 hover:bg-teal-700">Salvar e Fechar Sessão</button>
+<button onclick="discardSession()" class="w-full bg-white border border-rose-200 text-rose-600 font-bold py-4 rounded-xl hover:bg-rose-50 transition-colors flex items-center justify-center gap-2">Descartar Sessão</button>
+</div>
+</div>
+<div id="viewSummary" class="hidden space-y-6 fade-enter">
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6 print:border-none print:shadow-none print:p-0">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<button id="summaryBackBtn" onclick="showView('history')" class="hidden p-2 -ml-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors no-print">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+</button>
+<div><h2 class="text-xl font-bold text-slate-900">Relatório de Sessão</h2><p id="summaryDate" class="text-slate-500 text-sm"></p></div>
+</div>
+</div>
+<div class="bg-slate-50 rounded-2xl p-6 border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mt-2 print:border-none print:p-0 print:bg-white">
+<div class="space-y-4 w-full sm:w-auto">
+<div><span class="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">Observador</span><span id="sumObserver" class="block font-bold text-slate-900 text-lg leading-none"></span></div>
+<div><span class="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">Tipo de Auditoria</span><span id="sumType" class="block font-bold text-slate-900 text-lg leading-none capitalize"></span></div>
+</div>
+<div class="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 pt-4 sm:pt-0 sm:pl-8">
+<span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-0 sm:mb-1">Total Registos</span><span id="sumCount" class="font-black text-4xl text-teal-600 leading-none"></span>
+</div>
+</div>
+<div id="summaryList" class="space-y-3"></div>
+</div>
+<div class="flex gap-3 no-print">
+<button onclick="window.print()" class="flex-1 bg-white border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Imprimir / PDF
+</button>
+<button onclick="showView('setup')" class="flex-1 bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-colors">Sair</button>
+</div>
+</div>
+</main>
+<footer class="py-8 text-center text-[10px] text-slate-400 no-print">
+<p>Designed & Developed by <a href="mailto:theandrebarros@gmail.com" class="font-bold text-slate-500 hover:text-slate-800 transition-colors">Andre Barros</a> © <span id="copyrightYear"></span></p>
+<script>document.getElementById('copyrightYear').innerText = new Date().getFullYear();</script>
+</footer>
+<div id="exitOverlay" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 fade-enter">
+<div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center">
+<div class="mx-auto w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-2">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+</div>
+<h3 class="text-lg font-bold text-slate-800">Aviso</h3>
+<p class="text-slate-600 text-sm">Está a tentar voltar para a página inicial. Escolha a opção abaixo:</p>
+<div class="space-y-3 pt-2">
+<button onclick="saveAndExit()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Salvar e Fechar Sessão</button>
+<button onclick="discardAndExit()" class="w-full bg-white border border-rose-200 text-rose-600 font-bold py-3 rounded-xl hover:bg-rose-50 transition-colors">Descartar Sessão</button>
+<button onclick="closeExitOverlay()" class="w-full text-slate-400 font-medium text-xs pt-2 hover:text-slate-600">Cancelar</button>
+</div>
+</div>
+</div>
+<script>
+const INDICATIONS = [{id:1,label:"Antes do contacto com o doente",icon:"👋"},{id:2,label:"Antes de um procedimento asséptico",icon:"💉"},{id:3,label:"Depois de risco de exposição a sangue e fluidos corporais",icon:"🩸"},{id:4,label:"Depois do contacto com o doente",icon:"🤝"},{id:5,label:"Depois do contacto com o ambiente envolvente do doente",icon:"🛏️"},];
+const ACTIONS = [{id:'Fricção',label:"Fricção anti-séptica",theme:"emerald"},{id:'Lavagem',label:"Lavagem",theme:"blue"},{id:'Missed',label:"Não realizado",theme:"red"},{id:'Luvas',label:"Luvas",theme:"purple"}];
+const THEME={base:"rounded-xl border transition-colors transition-transform duration-200 shadow-sm focus:outline-none focus-visible:ring-2 cursor-pointer select-none active:scale-[0.98]",inactive:"bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md active:bg-slate-50",active:{teal:"bg-teal-50 border-teal-500 text-teal-700 hover:bg-teal-100 focus-visible:ring-teal-500/50",violet:"bg-violet-50 border-violet-500 text-violet-700 hover:bg-violet-100 focus-visible:ring-violet-500/50",slate:"bg-slate-100 border-slate-500 text-slate-800 hover:bg-slate-200 focus-visible:ring-slate-500/50",emerald:"bg-emerald-50 border-emerald-500 text-emerald-700 hover:bg-emerald-100 focus-visible:ring-emerald-500/50",blue:"bg-blue-50 border-blue-500 text-blue-700 hover:bg-blue-100 focus-visible:ring-blue-500/50",red:"bg-red-50 border-red-500 text-red-700 hover:bg-red-100 focus-visible:ring-red-500/50",purple:"bg-purple-50 border-purple-500 text-purple-700 hover:bg-purple-100 focus-visible:ring-purple-500/50"}};
+function getThemeClass(isActive,colorKey,extra=''){let stateClass=THEME.inactive;if(isActive){stateClass=THEME.active[colorKey]||THEME.active.slate;}else{const hoverMap={teal:'hover:bg-teal-50',violet:'hover:bg-violet-50',slate:'hover:bg-slate-100',emerald:'hover:bg-emerald-50',blue:'hover:bg-blue-50',red:'hover:bg-red-50',purple:'hover:bg-purple-50'};stateClass+=` ${hoverMap[colorKey]||'hover:bg-slate-50'}`;}return `${THEME.base} ${stateClass} ${extra}`.trim();}
+const GLOVE_GROUPS=[{title:"Critérios 1 a 6: Selecção / Colocação",items:[{id:1,text:"Selecciona as luvas adequadas ao procedimento"},{id:2,text:"Higieniza as mãos antes de colocar as luvas"},{id:3,text:"Coloca as luvas imediatamente antes de iniciar o procedimento"},{id:4,text:"Coloca as luvas com técnica adequada garantido a sua não contaminação"},{id:5,text:"Utiliza duplo par de luvas em situação de risco particularmente elevado"},{id:6,text:"Utiliza luvas de punho alto e/ou cobre a bata com a luva em situação de elevado risco de exposição a fluidos orgânicos"}]},{title:"Critérios 7 a 13: Uso / Substituição",items:[{id:7,text:"Utiliza luvas limpas descartáveis na exposição direta"},{id:8,text:"Utiliza luvas limpas descartáveis na exposição indireta"},{id:9,text:"Utiliza luvas esterilizadas em procedimento invasivo/cirúrgico"},{id:10,text:"Utiliza luvas reutilizáveis de uso individual em procedimento de descontaminação ambiental/DM"},{id:11,text:"Troca de luvas entre procedimentos no mesmo doente"},{id:12,text:"Retira as luvas após o procedimento"},{id:13,text:"Toca no ambiente envolvente (superfícies, materiais e equipamentos) sem luvas"}]},{title:"Critérios 14 a 17: Remoção",items:[{id:14,text:"Remove as luvas com técnica adequada, prevenindo a sua contaminação e do ambiente"},{id:15,text:"Remove as luvas pela ordem indicada, quando utilizadas conjuntamente com outros EPIs"},{id:16,text:"Descarta as luvas de acordo com a norma interna de triagem dos resíduos"},{id:17,text:"Higieniza as mãos imediatamente após a remoção das luvas"}]}];
+let appState={view:'setup',auditType:'hygiene',activeTab:'hygiene',sessionRole:''};
+let session={active:false,startTime:null,observer:'',role:'',observations:[]};
+let currentObs={hygiene:{indications:[],actions:[]},gloves:{answers:{}}};
+function init(){renderIndications();renderActions();renderGloves();renderHeader();}
+function renderHeader(){const container=document.getElementById('headerActions');if(appState.view==='setup'){container.innerHTML=`<button onclick="showView('history')" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors flex items-center gap-1">⏱️ Histórico</button>`;}else if(appState.view==='active'){container.innerHTML=`<button onclick="handleHomeClick()" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full hover:bg-rose-100 transition-colors flex items-center gap-1 border border-rose-100">🛑 Finalizar</button>`;}else{container.innerHTML='';}}
+function renderIndications(){document.getElementById('indicationsList').innerHTML=INDICATIONS.map(i=>`<button onclick="toggleIndication(${i.id})" id="ind-${i.id}" class="${getThemeClass(false,'teal','w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]')}"><span class="text-xl">${i.icon}</span><span class="text-sm font-medium flex-1">${i.label}</span><div class="chk-circle w-5 h-5 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center transition-colors"><svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div></button>`).join('');}
+function renderActions(){document.getElementById('actionsList').innerHTML=ACTIONS.map(a=>`<button onclick="toggleAction('${a.id}')" id="act-${a.id}" class="${getThemeClass(false,a.theme,'p-4 text-center font-bold text-sm')}">${a.label}</button>`).join('');}
+function renderGloves(){document.getElementById('glovesList').innerHTML=GLOVE_GROUPS.map((g,gi)=>`<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="bg-indigo-50/50 p-2 px-3 border-b border-indigo-100 flex items-center gap-2"><span class="text-[10px] font-bold uppercase text-indigo-500 bg-white px-1.5 py-0.5 rounded border border-indigo-100">${gi+1}</span><span class="text-xs font-bold text-slate-700">${g.title}</span></div><div class="p-3 space-y-4">${g.items.map(item=>`<div><p class="text-sm text-slate-700 mb-2 leading-tight font-medium">${item.text}</p><div class="flex bg-slate-100 p-0.5 rounded-lg"><button onclick="ansGlove(${item.id},'yes')" id="glove-${item.id}-yes" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">Sim</button><button onclick="ansGlove(${item.id},'no')" id="glove-${item.id}-no" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">Não</button><button onclick="ansGlove(${item.id},'na')" id="glove-${item.id}-na" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-300 hover:bg-white hover:shadow-sm hover:text-slate-600">N/A</button></div></div>`).join('')}</div></div>`).join('');}
+function setAuditType(type){appState.auditType=type;const types=['hygiene','gloves','both'];const themes={hygiene:'teal',gloves:'violet',both:'slate'};types.forEach(t=>{const isActive=t===type;const cls=getThemeClass(isActive,themes[t],'p-3 flex flex-col items-center gap-2');document.getElementById(`type-${t}`).className='type-btn '+cls;});}
+function setSessionRole(role){appState.sessionRole=role;const roles=['Enf','Med','Assist'];roles.forEach(r=>{const isActive=r===role;const cls=getThemeClass(isActive,'teal','p-3 font-bold text-sm');const el=document.getElementById(`role-${r}`);if(el)el.className='role-btn '+cls;});}
+function startSession(){const role=appState.sessionRole;if(!role){alert("Selecione a Categoria Profissional.");return;}session={active:true,startTime:new Date().toISOString(),auditType:appState.auditType,role:role,observations:[]};const roleLabels={'Med':'Médico','Enf':'Enfermeiro','Assist':'Assist. Oper.'};document.getElementById('activeObserver').innerText=roleLabels[role]||role;const tabSwitcher=document.getElementById('tabSwitcher');const hForm=document.getElementById('formHygiene');const gForm=document.getElementById('formGloves');if(appState.auditType==='both'){tabSwitcher.classList.remove('hidden');setActiveTab('hygiene');}else if(appState.auditType==='gloves'){tabSwitcher.classList.add('hidden');hForm.classList.add('hidden');gForm.classList.remove('hidden');appState.activeTab='gloves';appState.activeTab='gloves';}else{tabSwitcher.classList.add('hidden');hForm.classList.remove('hidden');gForm.classList.add('hidden');appState.activeTab='hygiene';}currentObs.hygiene={indications:[],actions:[]};currentObs.gloves={answers:{}};resetHygieneUI();resetGlovesUI();showView('active');}
+function setActiveTab(tab){appState.activeTab=tab;const highlighter=document.getElementById('tabHighlighter');const btnH=document.getElementById('tab-hygiene');const btnG=document.getElementById('tab-gloves');const formH=document.getElementById('formHygiene');const formG=document.getElementById('formGloves');if(tab==='hygiene'){highlighter.style.transform='translateX(0)';btnH.className='flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-teal-700';btnG.className='flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';formH.classList.remove('hidden');formG.classList.add('hidden');}else{highlighter.style.transform='translateX(100%)';btnH.className='flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';btnG.className='flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-violet-700';formH.classList.add('hidden');formG.classList.remove('hidden');}}
+function toggleIndication(id){const list=currentObs.hygiene.indications;if(list.includes(id)){currentObs.hygiene.indications=list.filter(i=>i!==id);document.getElementById(`ind-${id}`).className=getThemeClass(false,'teal','w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]');document.querySelector(`#ind-${id} .chk-circle`).classList.remove('bg-teal-500','border-teal-500');document.querySelector(`#ind-${id} .chk-circle svg`).classList.add('hidden');}else{currentObs.hygiene.indications.push(id);document.getElementById(`ind-${id}`).className=getThemeClass(true,'teal','w-full p-4 flex items-center gap-3 text-left active:scale-[0.99]');document.querySelector(`#ind-${id} .chk-circle`).classList.add('bg-teal-500','border-teal-500');document.querySelector(`#ind-${id} .chk-circle svg`).classList.remove('hidden');}}
+function toggleAction(id){const list=currentObs.hygiene.actions;const themeKey=ACTIONS.find(a=>a.id===id)?.theme||'teal';if(list.includes(id)){currentObs.hygiene.actions=list.filter(a=>a!==id);document.getElementById(`act-${id}`).className=getThemeClass(false,themeKey,'p-4 text-center font-bold text-sm');}else{currentObs.hygiene.actions.push(id);document.getElementById(`act-${id}`).className=getThemeClass(true,themeKey,'p-4 text-center font-bold text-sm');}}
+function resetHygieneUI(){currentObs.hygiene={indications:[],actions:[]};renderIndications();renderActions();}
+function ansGlove(id,val){currentObs.gloves.answers[id]=val;const ids=['yes','no','na'];const baseClass='flex-1 py-1.5 text-xs font-bold rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1';const inactiveClass='text-slate-400 hover:bg-white hover:shadow-sm hover:text-slate-600 focus-visible:ring-slate-300';ids.forEach(v=>{document.getElementById(`glove-${id}-${v}`).className=`${baseClass} ${inactiveClass}`;});const activeClass=val==='yes'?'bg-emerald-100 text-emerald-700 shadow-sm hover:bg-emerald-200 focus-visible:ring-emerald-500':val==='no'?'bg-red-100 text-red-700 shadow-sm hover:bg-red-200 focus-visible:ring-red-500':'bg-slate-200 text-slate-700 shadow-sm hover:bg-slate-300 focus-visible:ring-slate-500';document.getElementById(`glove-${id}-${val}`).className=`${baseClass} ${activeClass}`;}
+function resetGlovesUI(){currentObs.gloves={answers:{}};renderGloves();}
+function saveAndFinish(){const role=session.role;let savedCount=0;const {indications,actions}=currentObs.hygiene;const hasPartialHygiene=indications.length>0||actions.length>0;const isHygieneValid=indications.length>0&&actions.length>0;if(hasPartialHygiene){if(!isHygieneValid){alert("Atenção: O registo de Higiene está incompleto (Indicações + Ação).");return;}session.observations.push({id:Date.now(),timestamp:new Date().toISOString(),type:'hygiene',role,indications:[...indications],actions:[...actions]});savedCount++;}const {answers}=currentObs.gloves;const hasGloves=Object.keys(answers).length>0;if(hasGloves){session.observations.push({id:Date.now()+(savedCount>0?1:0),timestamp:new Date().toISOString(),type:'gloves',role,answers:{...answers}});savedCount++;}if(savedCount===0){if(appState.activeTab==='hygiene'&&appState.auditType!=='gloves'){alert("Complete o preenchimento de Higiene.");}else if(appState.activeTab==='gloves'&&appState.auditType!=='hygiene'){alert("Preencha o formulário de Luvas.");}else{alert("Sem dados para salvar. Preencha pelo menos um dos formulários.");}return;}const history=JSON.parse(localStorage.getItem('cci_history')||'[]');history.push(session);localStorage.setItem('cci_history',JSON.stringify(history));showSummary(session);}
+function discardSession(){if(confirm("Tem a certeza que deseja descartar esta sessão?")){showView('setup');}}
+function showSummary(sess,isFromHistory=false){const backBtn=document.getElementById('summaryBackBtn');if(backBtn){if(isFromHistory)backBtn.classList.remove('hidden');else backBtn.classList.add('hidden');}showView('summary');const d=new Date(sess.startTime||Date.now());const dateStr=d.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});const dateEl=document.getElementById('summaryDate');if(dateEl)dateEl.innerText=dateStr.charAt(0).toUpperCase()+dateStr.slice(1);const roleLabels={'Med':'Médico','Enf':'Enfermeiro','Assist':'Assist. Oper.'};document.getElementById('sumObserver').innerText=roleLabels[sess.role]||sess.role||sess.observer;const typeLabels={'hygiene':'Higiene das Mãos','gloves':'Uso de Luvas','both':'Higiene + Luvas'};document.getElementById('sumType').innerText=typeLabels[appState.auditType]||appState.auditType;document.getElementById('sumCount').innerText=sess.observations.length;const list=document.getElementById('summaryList');if(sess.observations.length===0){list.innerHTML='<div class="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Sem registos nesta sessão.</div>';}else{const glvMap={};GLOVE_GROUPS.forEach(g=>g.items.forEach(i=>glvMap[i.id]=i.text));const indMap={};INDICATIONS.forEach(i=>indMap[i.id]=i.label);list.innerHTML=sess.observations.map((o,i)=>{const time=new Date(o.timestamp).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});let detailHtml='';if(o.type==='hygiene'){const indicationsHtml=o.indications.map(id=>{const text=indMap[id]||id;return `<div class="flex justify-between items-center py-2 pl-2 pr-2"><span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${text}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">Sim</span></div>`;}).join('');const actionsHtml=o.actions.map(actId=>{const text=ACTIONS.find(a=>a.id===actId)?.label||actId;return `<div class="flex justify-between items-center py-2 pl-2 pr-2"><span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${text}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">Sim</span></div>`;}).join('');detailHtml=`<div class="mt-3 bg-slate-50/50 rounded-lg border border-slate-200 p-3"><div class="mb-4"><div class="mb-2"><span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">Indicações</span></div><div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">${indicationsHtml||'<div class="p-2 text-xs text-slate-400 italic">Nenhuma selecionada</div>'}</div></div><div class="mb-0"><div class="mb-2"><span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block">Acções</span></div><div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">${actionsHtml||'<div class="p-2 text-xs text-slate-400 italic">Nenhuma selecionada</div>'}</div></div></div>`;}else{const answersHtml=GLOVE_GROUPS.map((g,gi)=>{const groupAnswers=g.items.filter(item=>o.answers[item.id]).map(item=>{const val=o.answers[item.id];const label=val==='yes'?'Sim':val==='no'?'Não':'N/A';const badgeClass=val==='yes'?'bg-teal-100 text-teal-800':val==='no'?'bg-rose-100 text-rose-800':'bg-slate-100 text-slate-600';return `<div class="flex justify-between items-center py-2 pl-2 pr-2"><span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${item.text}</span><span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${label}</span></div>`;}).join('');if(!groupAnswers)return'';return `<div class="mb-4 last:mb-0"><div class="mb-2"><span class="text-[10px] font-bold uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 inline-block"><span class="mr-1 opacity-70">#${gi+1}</span> ${g.title}</span></div><div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-200">${groupAnswers}</div></div>`;}).join('');detailHtml=`<div class="mt-3 bg-slate-50/50 rounded-lg border border-slate-200 p-3">${answersHtml}</div>`;}const typeBadge=o.type==='hygiene'?'<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-50 text-teal-600 border border-teal-100 tracking-wide">Higiene</span>':'<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-violet-50 text-violet-600 border border-violet-100 tracking-wide">Luvas</span>';return `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm break-inside-avoid"><div class="flex justify-between items-start mb-2"><div class="flex items-center gap-3"><span class="font-mono text-slate-300 text-xs font-bold">#${i+1}</span><span class="font-bold text-slate-700 text-sm">${time}</span>${typeBadge}</div><span class="text-xs font-bold text-slate-400">${roleLabels[o.role||sess.role]||o.role||sess.role}</span></div>${detailHtml}</div>`;}).join('');}showView('summary');}
+function showView(viewName){appState.view=viewName;['viewSetup','viewActive','viewSummary','viewHistory'].forEach(id=>document.getElementById(id).classList.add('hidden'));const footer=document.getElementById('activeFooter');if(footer)footer.classList.add('hidden');if(viewName==='setup')document.getElementById('viewSetup').classList.remove('hidden');if(viewName==='active'){document.getElementById('viewActive').classList.remove('hidden');if(footer)footer.classList.remove('hidden');}if(viewName==='summary')document.getElementById('viewSummary').classList.remove('hidden');if(viewName==='history'){document.getElementById('viewHistory').classList.remove('hidden');refreshHistoryList();}renderHeader();}
+function refreshHistoryList(){const h=JSON.parse(localStorage.getItem('cci_history')||'[]');window.tempHistory=h;const list=document.getElementById('historyList');if(h.length===0){list.innerHTML='<div class="text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-2xl mx-1">Sem histórico.<br><span class="text-xs mt-1 block">As sessões finalizadas aparecerão aqui.</span></div>';}else{const roleLabels={'Med':'Médico','Enf':'Enfermeiro','Assist':'Assist. Oper.'};const typeLabels={'hygiene':'Higiene das Mãos','gloves':'Uso de Luvas','both':'Higiene + Luvas'};list.innerHTML=h.map((sess,idx)=>({sess,idx})).reverse().map(({sess,idx})=>{const dateObj=new Date(sess.startTime);const dateStr=dateObj.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});const timeStr=dateObj.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});const finalDateStr=dateStr.charAt(0).toUpperCase()+dateStr.slice(1);const role=roleLabels[sess.role]||sess.role||sess.observer;const typeRaw=sess.auditType||'hygiene';const type=typeLabels[typeRaw]||'Higiene das Mãos';return `<button onclick="loadHistoryItem(${idx})" class="w-full bg-slate-50 p-5 rounded-2xl border border-slate-200 text-left hover:bg-slate-100 hover:shadow-md transition-all duration-200 active:scale-[0.98] group space-y-4 mb-3 relative overflow-hidden"><div onclick="deleteHistoryItem(event, ${idx})" class="absolute top-0 right-0 p-3 z-20 text-slate-300 hover:text-rose-500 transition-colors" title="Apagar Registo"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div><div class="absolute bottom-0 right-0 bg-white text-slate-300 text-[10px] font-bold px-2 py-1 rounded-tl-xl border-l border-t border-slate-100 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">#${idx+1}</div><div class="pr-8"><h3 class="text-lg font-bold text-slate-900 leading-tight">${finalDateStr}</h3><p class="text-sm text-slate-500 font-medium">às ${timeStr}</p></div><div class="grid grid-cols-3 gap-2 text-sm pt-3 border-t border-slate-200/50"><div><span class="block text-slate-400 text-[10px] uppercase font-bold">Observador</span><span class="block font-semibold text-slate-700 truncate">${role}</span></div><div><span class="block text-slate-400 text-[10px] uppercase font-bold">Tipo</span><span class="block font-semibold text-slate-700 capitalize truncate">${typeRaw==='both'?'Ambos':(typeRaw==='gloves'?'Luvas':'Higiene')}</span></div><div><span class="block text-slate-400 text-[10px] uppercase font-bold">Total Obs.</span><span class="block font-bold text-teal-600 text-lg">${sess.observations.length}</span></div></div><div class="pt-2 flex items-center justify-start text-teal-600 font-bold text-xs opacity-100 transition-all duration-300">Ver Detalhes <span class="ml-1 text-lg leading-none transition-transform group-hover:translate-x-1">→</span></div></button>`;}).join('');}}
+function loadHistoryItem(idx){const sess=window.tempHistory[idx];showSummary(sess,true);}
+function clearHistory(){if(confirm("Apagar todo o histórico?")){localStorage.removeItem('cci_history');refreshHistoryList();}}
+function deleteHistoryItem(e,idx){e.stopPropagation();if(confirm("Deseja apagar este registo permanentemente?")){const h=JSON.parse(localStorage.getItem('cci_history')||'[]');if(idx>-1&&idx<h.length){h.splice(idx,1);localStorage.setItem('cci_history',JSON.stringify(h));refreshHistoryList();}}}
+function exportHistory(){const history=localStorage.getItem('cci_history')||'[]';const data={version:1,timestamp:Date.now(),source:'CCI_Audit_Tool',history:JSON.parse(history)};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');const date=new Date().toISOString().split('T')[0];a.href=url;a.download=`cci_audit_backup_${date}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+function triggerImport(){document.getElementById('importFile').click();}
+function handleImport(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const content=JSON.parse(e.target.result);let newHistory=[];if(Array.isArray(content)){newHistory=content;}else if(content.history&&Array.isArray(content.history)){newHistory=content.history;}else{throw new Error("Formato inválido");}if(confirm(`Encontradas ${newHistory.length} sessões no backup.\n\nATENÇÃO: Isto irá SUBSTITUIR o histórico atual no dispositivo.\n\nDeseja continuar?`)){localStorage.setItem('cci_history',JSON.stringify(newHistory));refreshHistoryList();alert("Histórico restaurado com sucesso!");}}catch(err){alert("Erro ao ler o ficheiro: "+err.message);}event.target.value='';};reader.readAsText(file);}
+function handleHomeClick(){if(appState.view==='active'&&session.active){document.getElementById('exitOverlay').classList.remove('hidden');}else{showView('setup');}}
+function closeExitOverlay(){document.getElementById('exitOverlay').classList.add('hidden');}
+function saveAndExit(){const history=JSON.parse(localStorage.getItem('cci_history')||'[]');history.push(session);localStorage.setItem('cci_history',JSON.stringify(history));closeExitOverlay();showView('setup');}
+function discardAndExit(){closeExitOverlay();showView('setup');}
+init();if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{scope:'./'}).then(registration=>console.log('SW Registered',registration)).catch(err=>console.log('SW Failed',err));});}
+</script>
 </body>
-
 </html>
