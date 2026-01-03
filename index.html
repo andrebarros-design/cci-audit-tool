@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria CCI - Relatório</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Animations */
+        .fade-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Accordion */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-content.open {
+            max-height: 2000px;
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .shadow-sm,
+            .shadow-md,
+            .shadow-xl {
+                box-shadow: none !important;
+            }
+
+            .border {
+                border-color: #e2e8f0 !important;
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hygiene: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488' },
+                        gloves: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-50 min-h-screen pb-20 print:pb-0">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm no-print">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="text-lg font-bold flex items-center gap-2 text-slate-800">
+                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Auditoria CCI
+            </h1>
+
+            <div id="headerActions">
+                <!-- Injected dynamically based on view -->
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 py-4 space-y-4 print:max-w-none print:p-8">
+
+        <!-- VIEW: SETUP -->
+        <div id="viewSetup" class="space-y-6 fade-enter">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-6">
+                <h2 class="font-semibold text-slate-800 flex items-center gap-2 text-lg">
+                    Configuração da Sessão
+                </h2>
+
+                <!-- Audit Type -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo de Auditoria</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setAuditType('hygiene')" id="type-hygiene"
+                            class="type-btn p-3 rounded-xl border transition-all flex flex-col items-center gap-2 bg-teal-50 border-teal-200 text-teal-700 ring-2 ring-teal-500/20">
+                            <span class="text-xl">👋</span>
+                            <span class="text-xs font-bold">Higiene</span>
+                        </button>
+                        <button onclick="setAuditType('gloves')" id="type-gloves"
+                            class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all flex flex-col items-center gap-2">
+                            <span class="text-xl">🧤</span>
+                            <span class="text-xs font-bold">Luvas</span>
+                        </button>
+                        <button onclick="setAuditType('both')" id="type-both"
+                            class="type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all flex flex-col items-center gap-2">
+                            <div class="flex text-lg"><span>👋</span><span>🧤</span></div>
+                            <span class="text-xs font-bold">Ambos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="space-y-3">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categoria
+                            Profissional</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setSessionRole('Med')" id="role-Med"
+                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm">Médico</button>
+                            <button onclick="setSessionRole('Enf')" id="role-Enf"
+                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm">Enfermeiro</button>
+                            <button onclick="setSessionRole('Assist')" id="role-Assist"
+                                class="role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm">Assist.
+                                Oper.</button>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <button onclick="startSession()"
+                    class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 active:scale-[0.98] transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    Iniciar Sessão
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: HISTORY -->
+        <div id="viewHistory" class="hidden space-y-6 fade-enter">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <button onclick="showView('setup')"
+                    class="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h2 class="text-lg font-bold text-slate-900">Histórico</h2>
+                <button onclick="clearHistory()"
+                    class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+            <div id="historyList" class="space-y-3">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- VIEW: ACTIVE SESSION -->
+        <div id="viewActive" class="hidden space-y-4 fade-enter">
+
+            <!-- Active Session Info -->
+            <div
+                class="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between text-sm mx-auto">
+                <div class="flex gap-4">
+                    <div>
+                        <span class="text-slate-400 text-[10px] uppercase font-bold block">Observador</span>
+                        <span id="activeObserver" class="font-bold text-slate-800">AB</span>
+                    </div>
+
+                </div>
+                <div class="text-right">
+                    <span class="text-slate-400 text-[10px] uppercase font-bold block">Registos</span>
+                    <span id="obsCount" class="font-bold text-teal-600 text-lg">0</span>
+                </div>
+            </div>
+
+            <!-- Tab Switcher (Only visible to Both) -->
+            <div id="tabSwitcher" class="hidden relative flex p-1 bg-slate-200/50 rounded-xl overflow-hidden">
+                <button onclick="setActiveTab('hygiene')" id="tab-hygiene"
+                    class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-teal-700">Higiene</button>
+                <button onclick="setActiveTab('gloves')" id="tab-gloves"
+                    class="flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500 hover:text-slate-700">Luvas</button>
+
+                <!-- Sliding Highligher -->
+                <div id="tabHighlighter"
+                    class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-white rounded-lg shadow-sm border border-slate-200 transition-all duration-300">
+                </div>
+            </div>
+
+            <!-- FORMS CONTAINER -->
+            <div id="formsContainer" class="pb-8">
+                <!-- Hygiene Form -->
+                <div id="formHygiene" class="space-y-6 slide-in">
+                    <!-- Indications -->
+                    <!-- Indications -->
+                    <section>
+                        <h3 class="font-semibold text-slate-800 mb-2 px-1">Indicações</h3>
+                        <div id="indicationsList" class="space-y-2"></div>
+                    </section>
+                    <!-- Actions -->
+                    <section>
+                        <h3 class="font-semibold text-slate-800 mb-2 px-1">Ação</h3>
+                        <div id="actionsList" class="grid grid-cols-2 gap-3"></div>
+                    </section>
+                </div>
+
+                <!-- Gloves Form -->
+                <div id="formGloves" class="hidden space-y-6 slide-in pt-4">
+                    <!-- Checklist -->
+                    <div id="glovesList" class="space-y-3"></div>
+                </div>
+
+                <!-- Bottom Padding for Fixed Footer -->
+                <div class="h-48 print:hidden"></div>
+            </div>
+        </div>
+
+        <!-- Fixed Bottom Buttons (Moved outside to avoid transform issues) -->
+        <div id="activeFooter"
+            class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200 z-50 no-print transition-all duration-300">
+            <div class="max-w-md mx-auto space-y-3">
+                <button onclick="saveObservation()" id="saveBtn"
+                    class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Salvar Observação
+                </button>
+
+                <button onclick="confirmFinalize()"
+                    class="w-full bg-rose-50 text-rose-600 font-bold py-3.5 rounded-xl hover:bg-rose-100 transition-colors border border-rose-100 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Finalizar Sessão
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: SUMMARY -->
+        <div id="viewSummary" class="hidden space-y-6 fade-enter">
+            <div
+                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6 print:border-none print:shadow-none print:p-0">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Relatório de Sessão</h2>
+                        <p id="summaryDate" class="text-slate-500 text-sm"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-sm print:grid-cols-4">
+                    <div>
+                        <span class="block text-slate-400 text-[10px] uppercase font-bold">Observador</span>
+                        <span id="sumObserver" class="font-medium text-slate-900 text-lg"></span>
+                    </div>
+
+                    <div>
+                        <span class="block text-slate-400 text-[10px] uppercase font-bold">Tipo</span>
+                        <span id="sumType" class="font-medium text-slate-900 text-lg capitalize"></span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-400 text-[10px] uppercase font-bold">Total Obs.</span>
+                        <span id="sumCount" class="font-medium text-teal-600 text-lg"></span>
+                    </div>
+                </div>
+
+                <div id="summaryList" class="space-y-3">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+
+            <div class="flex gap-3 no-print">
+                <button onclick="window.print()"
+                    class="flex-1 bg-white border border-slate-200 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimir / PDF
+                </button>
+                <button onclick="showView('setup')"
+                    class="flex-1 bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-colors">
+                    Sair
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- CONSTANTS ---
+        const INDICATIONS = [
+            { id: 1, label: "Antes do contacto com doente", icon: "👋" },
+            { id: 2, label: "Antes de procedimento asséptico", icon: "💉" },
+            { id: 3, label: "Após risco exposição fluidos", icon: "🩸" },
+            { id: 4, label: "Após contacto com doente", icon: "🤝" },
+            { id: 5, label: "Após contacto com ambiente", icon: "🛏️" },
+        ];
+        const ACTIONS = [
+            { id: 'Fricção', label: "Fricção Alcoólica", color: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+            { id: 'Lavagem', label: "Lavagem", color: "bg-blue-100 text-blue-800 border-blue-200" },
+            { id: 'Missed', label: "Não Realizado", color: "bg-red-100 text-red-800 border-red-200" },
+            { id: 'Luvas', label: "Luvas", color: "bg-purple-100 text-purple-800 border-purple-200" }
+        ];
+        const GLOVE_GROUPS = [
+            {
+                title: "Selecção / Colocação",
+                items: [
+                    { id: 1, text: "Selecciona as luvas adequadas" },
+                    { id: 2, text: "Higieniza mãos antes de colocar" },
+                    { id: 3, text: "Coloca imediatamente antes" },
+                    { id: 4, text: "Técnica adequada" }
+                ]
+            },
+            {
+                title: "Uso / Remoção",
+                items: [
+                    { id: 7, text: "Luvas limpas (Exp. Direta)" },
+                    { id: 8, text: "Luvas limpas (Exp. Indireta)" },
+                    { id: 11, text: "Troca entre procedimentos" },
+                    { id: 12, text: "Retira após procedimento" },
+                    { id: 17, text: "Higieniza mãos após remoção" }
+                ]
+            }
+        ];
+
+        // --- STATE ---
+        let appState = {
+            view: 'setup',
+            auditType: 'hygiene', // hygiene, gloves, both
+            activeTab: 'hygiene',
+            sessionRole: '' // Med, Enf, Assist
+        };
+
+        let session = {
+            active: false,
+            startTime: null,
+            observer: '', // Unused/Hidden
+            role: '', // Store session role
+            observations: []
+        };
+
+        let currentObs = {
+            hygiene: { indications: [], action: '' },
+            gloves: { answers: {} }
+        };
+
+        // --- INIT ---
+        function init() {
+            renderIndications();
+            renderActions();
+            renderGloves();
+            renderHeader();
+        }
+
+        // --- RENDERERS ---
+        function renderHeader() {
+            const container = document.getElementById('headerActions');
+            if (appState.view === 'setup') {
+                container.innerHTML = `
+                    <button onclick="showView('history')" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors flex items-center gap-1">
+                        ⏱️ Histórico
+                    </button>`;
+            } else if (appState.view === 'active') {
+                container.innerHTML = `
+                    <button onclick="confirmFinalize()" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full hover:bg-rose-100 transition-colors flex items-center gap-1 border border-rose-100">
+                        🛑 Finalizar
+                    </button>`;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function renderIndications() {
+            document.getElementById('indicationsList').innerHTML = INDICATIONS.map(i => `
+                <button onclick="toggleIndication(${i.id})" id="ind-${i.id}" class="w-full flex items-center gap-3 p-3 rounded-xl border bg-white border-slate-200 active:scale-[0.99] transition-all text-left">
+                    <span class="text-xl">${i.icon}</span>
+                    <span class="text-sm font-medium text-slate-600 flex-1">${i.label}</span>
+                    <div class="chk-circle w-5 h-5 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        function renderActions() {
+            document.getElementById('actionsList').innerHTML = ACTIONS.map(a => `
+                <button onclick="setAction('${a.id}')" id="act-${a.id}" class="p-3 rounded-xl border bg-white border-slate-200 opacity-80 text-center font-bold text-sm text-slate-700 active:scale-95 transition-all">
+                    ${a.label}
+                </button>
+            `).join('');
+        }
+
+        function renderGloves() {
+            document.getElementById('glovesList').innerHTML = GLOVE_GROUPS.map((g, gi) => `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-indigo-50/50 p-2 px-3 border-b border-indigo-100 flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase text-indigo-500 bg-white px-1.5 py-0.5 rounded border border-indigo-100">${gi + 1}</span>
+                        <span class="text-xs font-bold text-slate-700">${g.title}</span>
+                    </div>
+                    <div class="p-3 space-y-4">
+                        ${g.items.map(item => `
+                            <div>
+                                <p class="text-sm text-slate-700 mb-2 leading-tight font-medium">${item.text}</p>
+                                <div class="flex bg-slate-100 p-0.5 rounded-lg">
+                                    <button onclick="ansGlove(${item.id}, 'yes')" id="glove-${item.id}-yes" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all">Sim</button>
+                                    <button onclick="ansGlove(${item.id}, 'no')" id="glove-${item.id}-no" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all">Não</button>
+                                    <button onclick="ansGlove(${item.id}, 'na')" id="glove-${item.id}-na" class="flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all">N/A</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- LOGIC: SETUP ---
+        function setAuditType(type) {
+            appState.auditType = type;
+            document.querySelectorAll('.type-btn').forEach(b => {
+                b.className = 'type-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all flex flex-col items-center gap-2';
+            });
+            const activeColor = type === 'gloves' ? 'bg-violet-50 border-violet-200 text-violet-700 ring-2 ring-violet-500/20' :
+                type === 'both' ? 'bg-slate-100 border-slate-300 text-slate-800 ring-2 ring-slate-500/20' :
+                    'bg-teal-50 border-teal-200 text-teal-700 ring-2 ring-teal-500/20';
+            document.getElementById(`type-${type}`).className = `type-btn p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${activeColor}`;
+        }
+
+        function setSessionRole(role) {
+            appState.sessionRole = role;
+            // Visual Update
+            document.querySelectorAll('.role-btn').forEach(b => {
+                b.className = 'role-btn p-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm';
+            });
+            const clickedBtn = document.getElementById(`role-${role}`);
+            if (clickedBtn) {
+                clickedBtn.className = 'role-btn p-3 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 ring-2 ring-teal-500/20 transition-all font-bold text-sm';
+            }
+        }
+
+        function startSession() {
+            const role = appState.sessionRole;
+
+            if (!role) { alert("Selecione a Categoria Profissional."); return; }
+
+            session = {
+                active: true,
+                startTime: new Date().toISOString(),
+                observer: '',
+                role: role,
+                observations: []
+            };
+
+            // Setup UI
+            const roleLabels = { 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' };
+            document.getElementById('activeObserver').innerText = roleLabels[role] || role;
+            document.getElementById('obsCount').innerText = '0';
+
+            // Configure Tabs
+            const tabSwitcher = document.getElementById('tabSwitcher');
+            const hForm = document.getElementById('formHygiene');
+            const gForm = document.getElementById('formGloves');
+
+            if (appState.auditType === 'both') {
+                tabSwitcher.classList.remove('hidden');
+                setActiveTab('hygiene');
+            } else if (appState.auditType === 'gloves') {
+                tabSwitcher.classList.add('hidden');
+                hForm.classList.add('hidden');
+                gForm.classList.remove('hidden');
+                appState.activeTab = 'gloves';
+                updateSaveButtonColor('violet');
+            } else {
+                tabSwitcher.classList.add('hidden');
+                hForm.classList.remove('hidden');
+                gForm.classList.add('hidden');
+                appState.activeTab = 'hygiene';
+                updateSaveButtonColor('slate');
+            }
+
+            // Clean Arrays
+            currentObs.hygiene = { indications: [], action: '' };
+            currentObs.gloves = { answers: {} };
+            resetHygieneUI();
+            resetGlovesUI();
+
+            showView('active');
+        }
+
+        function setActiveTab(tab) {
+            appState.activeTab = tab;
+            const highlighter = document.getElementById('tabHighlighter');
+            const btnH = document.getElementById('tab-hygiene');
+            const btnG = document.getElementById('tab-gloves');
+            const formH = document.getElementById('formHygiene');
+            const formG = document.getElementById('formGloves');
+
+            if (tab === 'hygiene') {
+                highlighter.style.transform = 'translateX(0)';
+                btnH.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-teal-700';
+                btnG.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';
+                formH.classList.remove('hidden');
+                formG.classList.add('hidden');
+                updateSaveButtonColor('slate');
+            } else {
+                highlighter.style.transform = 'translateX(100%)';
+                btnH.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-slate-500';
+                btnG.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg relative z-10 transition-all text-violet-700';
+                formH.classList.add('hidden');
+                formG.classList.remove('hidden');
+                updateSaveButtonColor('violet');
+            }
+        }
+
+        function updateSaveButtonColor(color) {
+            const btn = document.getElementById('saveBtn');
+            if (color === 'violet') {
+                btn.className = 'w-full bg-violet-600 text-white font-bold py-4 rounded-xl shadow-md shadow-violet-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-violet-600';
+            } else {
+                btn.className = 'w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-slate-900';
+            }
+        }
+
+
+
+        function toggleIndication(id) {
+            const list = currentObs.hygiene.indications;
+            if (list.includes(id)) {
+                currentObs.hygiene.indications = list.filter(i => i !== id);
+                document.getElementById(`ind-${id}`).classList.remove('ring-2', 'ring-teal-500/20', 'bg-teal-50', 'border-teal-200');
+                document.querySelector(`#ind-${id} .chk-circle`).classList.remove('bg-teal-500', 'border-teal-500');
+                document.querySelector(`#ind-${id} .chk-circle svg`).classList.add('hidden');
+            } else {
+                currentObs.hygiene.indications.push(id);
+                document.getElementById(`ind-${id}`).classList.add('ring-2', 'ring-teal-500/20', 'bg-teal-50', 'border-teal-200');
+                document.querySelector(`#ind-${id} .chk-circle`).classList.add('bg-teal-500', 'border-teal-500');
+                document.querySelector(`#ind-${id} .chk-circle svg`).classList.remove('hidden');
+            }
+        }
+
+        function setAction(id) {
+            currentObs.hygiene.action = id;
+            document.querySelectorAll('[id^=act-]').forEach(b => b.classList.add('opacity-60', 'grayscale'));
+            const me = document.getElementById(`act-${id}`);
+            me.classList.remove('opacity-60', 'grayscale');
+
+            const colorClass = ACTIONS.find(a => a.id === id).color;
+            me.className = `p-3 rounded-xl border text-center font-bold text-sm transition-all ring-2 ring-offset-2 ring-slate-200 shadow-md transform scale-105 ${colorClass}`;
+        }
+
+        function resetHygieneUI() {
+            currentObs.hygiene = { indications: [], action: '' };
+            // Reset Inds
+            renderIndications();
+            // Reset Actions
+            renderActions();
+        }
+
+        // --- LOGIC: GLOVES FORM ---
+
+        function ansGlove(id, val) {
+            currentObs.gloves.answers[id] = val;
+            const ids = ['yes', 'no', 'na'];
+            ids.forEach(v => {
+                document.getElementById(`glove-${id}-${v}`).className = 'flex-1 py-1.5 text-xs font-bold text-slate-400 rounded-md transition-all hover:bg-slate-50';
+            });
+            const activeClass = val === 'yes' ? 'bg-emerald-100 text-emerald-700 shadow-sm' :
+                val === 'no' ? 'bg-red-100 text-red-700 shadow-sm' :
+                    'bg-slate-200 text-slate-700 shadow-sm';
+            document.getElementById(`glove-${id}-${val}`).className = `flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeClass}`;
+        }
+
+        function resetGlovesUI() {
+            currentObs.gloves = { answers: {} };
+            renderGloves();
+        }
+
+        // --- LOGIC: MAIN ---
+        function saveObservation() {
+            const role = session.role; // Use session-wide role
+
+            if (appState.activeTab === 'hygiene') {
+                const { indications, action } = currentObs.hygiene;
+                if (indications.length === 0 || !action) { alert("Complete o preenchimento (Indicações + Ação)."); return; }
+
+                session.observations.push({
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    type: 'hygiene',
+                    role, indications: [...indications], action
+                });
+                resetHygieneUI();
+            } else {
+                const { answers } = currentObs.gloves;
+                if (Object.keys(answers).length === 0) { alert("Preencha pelo menos um item."); return; }
+
+                session.observations.push({
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    type: 'gloves',
+                    role, answers: { ...answers }
+                });
+                resetGlovesUI();
+            }
+
+            // Feedback
+            document.getElementById('obsCount').innerText = session.observations.length;
+            const btn = document.getElementById('saveBtn');
+            const oldText = btn.innerHTML;
+            btn.innerHTML = "✅ Guardado!";
+            btn.style.background = "#10b981"; // emerald-500
+            setTimeout(() => {
+                btn.innerHTML = oldText;
+                btn.style.background = "";
+            }, 800);
+        }
+
+        function confirmFinalize() {
+            if (confirm("Terminar sessão e gerar relatório?")) {
+                // Save to Storage
+                const history = JSON.parse(localStorage.getItem('cci_history') || '[]');
+                history.push(session);
+                localStorage.setItem('cci_history', JSON.stringify(history));
+
+                showSummary(session);
+            }
+        }
+
+        function showSummary(sess) {
+            // Set Date
+            const d = new Date(sess.startTime || Date.now());
+            const dateStr = d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+            const dateEl = document.getElementById('summaryDate');
+            if (dateEl) dateEl.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+            const roleLabels = { 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' };
+            document.getElementById('sumObserver').innerText = roleLabels[sess.role] || sess.role || sess.observer;
+
+            const typeLabels = { 'hygiene': 'Higiene das Mãos', 'gloves': 'Uso de Luvas', 'both': 'Higiene + Luvas' };
+            document.getElementById('sumType').innerText = typeLabels[appState.auditType] || appState.auditType;
+
+            document.getElementById('sumCount').innerText = sess.observations.length;
+
+            const list = document.getElementById('summaryList');
+            if (sess.observations.length === 0) {
+                list.innerHTML = '<div class="p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Sem registos nesta sessão.</div>';
+            } else {
+                // Helpers for detail lookup
+                const glvMap = {}; GLOVE_GROUPS.forEach(g => g.items.forEach(i => glvMap[i.id] = i.text));
+                const indMap = {}; INDICATIONS.forEach(i => indMap[i.id] = i.label);
+
+                list.innerHTML = sess.observations.map((o, i) => {
+                    const time = new Date(o.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+                    let detailHtml = '';
+
+                    if (o.type === 'hygiene') {
+                        const inds = o.indications.map(id => `
+                            <div class="flex items-start gap-2 text-slate-600 mb-1">
+                                <span class="text-teal-500 mt-1">●</span>
+                                <span>${indMap[id] || id}</span>
+                            </div>`).join('');
+
+                        // Resolve Action Label from ID
+                        const actLabel = ACTIONS.find(a => a.id === o.action)?.label || o.action;
+
+                        detailHtml = `
+                            <div class="mt-3 pt-3 border-t border-slate-100">
+                                <div class="mb-3">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Indicações</span>
+                                    <div class="mt-1 text-sm">${inds}</div>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ação</span>
+                                    <div class="mt-1 font-bold text-slate-800 text-lg flex items-center gap-2">
+                                        ➜ ${actLabel}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const answers = Object.entries(o.answers).map(([id, val]) => {
+                            const txt = glvMap[id] || `Item ${id}`;
+                            const label = val === 'yes' ? 'Sim' : val === 'no' ? 'Não' : 'N/A';
+                            const badgeClass = val === 'yes' ? 'bg-teal-100 text-teal-800' : val === 'no' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600';
+
+                            return `<div class="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                                <span class="text-xs font-medium text-slate-600 w-2/3 leading-tight">${txt}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${label}</span>
+                            </div>`;
+                        }).join('');
+                        detailHtml = `<div class="mt-3 bg-slate-50 rounded-lg border border-slate-100 p-3">${answers}</div>`;
+                    }
+
+                    const typeBadge = o.type === 'hygiene'
+                        ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-50 text-teal-600 border border-teal-100 tracking-wide">Higiene</span>'
+                        : '<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-violet-50 text-violet-600 border border-violet-100 tracking-wide">Luvas</span>';
+
+                    return `
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm break-inside-avoid">
+                            <!-- Card Header -->
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-3">
+                                    <span class="font-mono text-slate-300 text-xs font-bold">#${i + 1}</span>
+                                    <span class="font-bold text-slate-700 text-sm">${time}</span>
+                                    ${typeBadge}
+                                </div>
+                                <span class="text-xs font-bold text-slate-400">${roleLabels[o.role || sess.role] || o.role || sess.role}</span>
+                            </div>
+
+                            <!-- Card Content -->
+                            ${detailHtml}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            showView('summary');
+        }
+
+        function showView(viewName) {
+            appState.view = viewName;
+            ['viewSetup', 'viewActive', 'viewSummary', 'viewHistory'].forEach(id => document.getElementById(id).classList.add('hidden'));
+
+            // Hide footer by default
+            const footer = document.getElementById('activeFooter');
+            if (footer) footer.classList.add('hidden');
+
+            if (viewName === 'setup') document.getElementById('viewSetup').classList.remove('hidden');
+            if (viewName === 'active') {
+                document.getElementById('viewActive').classList.remove('hidden');
+                // Show footer only in active view
+                if (footer) footer.classList.remove('hidden');
+            }
+            if (viewName === 'summary') document.getElementById('viewSummary').classList.remove('hidden');
+            if (viewName === 'history') {
+                document.getElementById('viewHistory').classList.remove('hidden');
+                refreshHistoryList();
+            }
+
+            renderHeader();
+        }
+
+        function refreshHistoryList() {
+            const h = JSON.parse(localStorage.getItem('cci_history') || '[]');
+            // Store globally to access by index
+            window.tempHistory = h;
+
+            const list = document.getElementById('historyList');
+            if (h.length === 0) {
+                list.innerHTML = '<p class="text-center text-slate-400 py-10">Sem histórico.</p>';
+            } else {
+                // Correctly map then reverse to strip indices properly
+                list.innerHTML = h.map((sess, idx) => ({ sess, idx })).reverse().map(({ sess, idx }) => `
+                     <button onclick="loadHistoryItem(${idx})" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 text-left hover:bg-white hover:shadow-md transition-all group mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-slate-700">${new Date(sess.startTime).toLocaleDateString('pt-PT')} ${new Date(sess.startTime).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">${sess.observations.length} Obs</span>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                             ${({ 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' })[sess.role] || sess.role || sess.observer}
+                        </div>
+                    </button>
+                `).join('');
+            }
+        }
+
+        function loadHistoryItem(idx) {
+            const sess = window.tempHistory[idx];
+            showSummary(sess);
+        }
+
+        function clearHistory() {
+            if (confirm("Apagar todo o histórico?")) {
+                localStorage.removeItem('cci_history');
+                refreshHistoryList();
+            }
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>
