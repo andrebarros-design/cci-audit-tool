@@ -81,6 +81,9 @@
     </style>
     <script>
         tailwind.config = {
+            future: {
+                hoverOnlyWhenSupported: true,
+            },
             theme: {
                 extend: {
                     colors: {
@@ -91,6 +94,7 @@
             }
         }
     </script>
+    <link rel="manifest" href="manifest.json">
 </head>
 
 <body class="bg-slate-50 min-h-screen pb-20 print:pb-0">
@@ -336,7 +340,7 @@
 
             <div class="space-y-3 pt-2">
                 <button onclick="saveAndExit()"
-                    class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">
+                    class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-colors">
                     Salvar e Fechar Sessão
                 </button>
                 <button onclick="discardAndExit()"
@@ -369,10 +373,9 @@
 
         // --- DESIGN SYSTEM ---
         const THEME = {
-            base: "rounded-xl border transition-all duration-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 cursor-pointer select-none",
-            inactive: "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md",
+            base: "rounded-xl border transition-all duration-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 cursor-pointer select-none active:scale-[0.98]",
+            inactive: "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-md active:bg-slate-50",
             active: {
-                teal: "bg-teal-50 border-teal-500 text-teal-700 hover:bg-teal-50 focus-visible:ring-teal-500/50",
                 teal: "bg-teal-50 border-teal-500 text-teal-700 hover:bg-teal-100 focus-visible:ring-teal-500/50",
                 violet: "bg-violet-50 border-violet-500 text-violet-700 hover:bg-violet-100 focus-visible:ring-violet-500/50",
                 slate: "bg-slate-100 border-slate-500 text-slate-800 hover:bg-slate-200 focus-visible:ring-slate-500/50",
@@ -690,27 +693,51 @@
         // --- LOGIC: MAIN ---
         function saveAndFinish() {
             const role = session.role;
+            let savedCount = 0;
 
-            if (appState.activeTab === 'hygiene') {
-                const { indications, actions } = currentObs.hygiene;
-                if (indications.length === 0 || actions.length === 0) { alert("Complete o preenchimento (Indicações + Ação)."); return; }
+            // 1. Check Hygiene
+            const { indications, actions } = currentObs.hygiene;
+            const hasPartialHygiene = indications.length > 0 || actions.length > 0;
+            const isHygieneValid = indications.length > 0 && actions.length > 0;
 
+            if (hasPartialHygiene) {
+                if (!isHygieneValid) {
+                    alert("Atenção: O registo de Higiene está incompleto (Indicações + Ação).");
+                    return;
+                }
                 session.observations.push({
                     id: Date.now(),
                     timestamp: new Date().toISOString(),
                     type: 'hygiene',
                     role, indications: [...indications], actions: [...actions]
                 });
-            } else {
-                const { answers } = currentObs.gloves;
-                if (Object.keys(answers).length === 0) { alert("Preencha pelo menos um item."); return; }
+                savedCount++;
+            }
 
+            // 2. Check Gloves
+            const { answers } = currentObs.gloves;
+            const hasGloves = Object.keys(answers).length > 0;
+
+            if (hasGloves) {
                 session.observations.push({
-                    id: Date.now(),
+                    id: Date.now() + (savedCount > 0 ? 1 : 0),
                     timestamp: new Date().toISOString(),
                     type: 'gloves',
                     role, answers: { ...answers }
                 });
+                savedCount++;
+            }
+
+            // 3. Fallback / Validation if nothing saved
+            if (savedCount === 0) {
+                if (appState.activeTab === 'hygiene' && appState.auditType !== 'gloves') {
+                    alert("Complete o preenchimento de Higiene.");
+                } else if (appState.activeTab === 'gloves' && appState.auditType !== 'hygiene') {
+                    alert("Preencha o formulário de Luvas.");
+                } else {
+                    alert("Sem dados para salvar. Preencha pelo menos um dos formulários.");
+                }
+                return;
             }
 
             // Save to Storage & Show Summary
@@ -827,7 +854,7 @@
                                 </div>
                             `;
                         }).join('');
-                        
+
                         detailHtml = `<div class="mt-3 bg-slate-50/50 rounded-lg border border-slate-100 p-3">${answersHtml}</div>`;
                     }
 
@@ -889,68 +916,26 @@
 
             const list = document.getElementById('historyList');
             if (h.length === 0) {
-                list.innerHTML = '<div class="text-center p-8 text-slate-400">Sem histórico</div>';
-                return;
-            }
-
-            // Descending order
-            list.innerHTML = h.map((sess, idx) => {
-                const date = new Date(sess.startTime || Date.now());
-                const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                // We'll store the REVERSED index in the button so we load the right item
-                // Actually easier: just sort the array first or handle index logic
-                // Let's iterate backwards or just use the original index?
-                // Visual order: Newest first.
-                // Global index: idx is problematic if we sort. 
-                // Let's just map original array but display in reverse CSS? Or reverse a copy.
-            })
-                .reverse() // wait, map returns a list of strings? No, undefined.
-            // Let's redo:
-            // Create list items with their ORIGINAL index
-            const items = h.map((sess, originalIdx) => {
-                const date = new Date(sess.startTime);
-                const dateFmt = date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }) + ' ' + date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-                const count = sess.observations.length;
-                const role = sess.role || '?';
-
-                return {
-                    html: `
-                    <button onclick="loadHistoryItem(${originalIdx})" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition-colors text-left">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-400">${dateFmt}</span>
-                            <span class="block font-bold text-slate-700">${sess.role === 'Med' ? 'Médico' : sess.role === 'Enf' ? 'Enfermeiro' : sess.role}</span>
+                list.innerHTML = '<p class="text-center text-slate-400 py-10">Sem histórico.</p>';
+            } else {
+                // Correctly map then reverse to strip indices properly
+                list.innerHTML = h.map((sess, idx) => ({ sess, idx })).reverse().map(({ sess, idx }) => `
+                     <button onclick="loadHistoryItem(${idx})" class="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 text-left hover:bg-white hover:shadow-md transition-all group mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-slate-700">${new Date(sess.startTime).toLocaleDateString('pt-PT')} ${new Date(sess.startTime).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">${sess.observations.length} Obs</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-bold text-slate-400 uppercase bg-slate-100 px-2 py-1 rounded">${count} Obs</span>
-                            <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <div class="text-xs text-slate-500">
+                             ${({ 'Med': 'Médico', 'Enf': 'Enfermeiro', 'Assist': 'Assist. Oper.' })[sess.role] || sess.role || sess.observer}
                         </div>
                     </button>
-                    `,
-                    ts: date.getTime()
-                };
-            });
-
-            // Sort by TS desc
-            items.sort((a, b) => b.ts - a.ts);
-
-            list.innerHTML = items.map(i => i.html).join('');
+                `).join('');
+            }
         }
 
-        function loadHistoryItem(index) {
-            const sess = window.tempHistory[index];
-            if (sess) {
-                // Determine audit type from observations if possible, or default
-                // We didn't store appState.auditType in session strictly, but we have 'type' in obs
-                // Let's just infer for summary display?
-                // Actually session has observations. filter types.
-                const hasH = sess.observations.some(o => o.type === 'hygiene');
-                const hasG = sess.observations.some(o => o.type === 'gloves');
-                if (hasH && hasG) appState.auditType = 'both';
-                else if (hasG) appState.auditType = 'gloves';
-                else appState.auditType = 'hygiene';
-
-                showSummary(sess);
-            }
+        function loadHistoryItem(idx) {
+            const sess = window.tempHistory[idx];
+            showSummary(sess);
         }
 
         function clearHistory() {
@@ -960,11 +945,13 @@
             }
         }
 
+        // --- OVERLAY LOGIC ---
         function handleHomeClick() {
-            if (appState.view === 'active') {
-                // Show overlay
+            if (appState.view === 'active' && session.active) {
+                // If session is active and has data, show warning
                 document.getElementById('exitOverlay').classList.remove('hidden');
             } else {
+                // Otherwise just go home
                 showView('setup');
             }
         }
@@ -974,25 +961,31 @@
         }
 
         function saveAndExit() {
-            // If user wants to "Save and Exit" while in active session?
-            // Usually this means "Finish Session". 
-            // We can reuse saveAndFinish BUT saveAndFinish requires current input validation?
-            // "Salvar e Fechar Sessão" on the overlay implies "Save what is done".
-            // If they are in the middle of an observation (e.g. clicked some buttons), do we save it?
-            // The footer button "Salvar e Fechar" saves the CURRENT observation.
-            // The overlay button... let's assume it attempts to save the current obs first.
+            // Save current session to history
+            const history = JSON.parse(localStorage.getItem('cci_history') || '[]');
+            history.push(session);
+            localStorage.setItem('cci_history', JSON.stringify(history));
+
             closeExitOverlay();
-            saveAndFinish();
+            showView('setup');
         }
 
         function discardAndExit() {
             closeExitOverlay();
-            session.active = false;
             showView('setup');
         }
 
-        // Initialize
+        // Start
         init();
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js', { scope: './' })
+                    .then(registration => console.log('SW Registered', registration))
+                    .catch(err => console.log('SW Failed', err));
+            });
+        }
     </script>
 </body>
 
