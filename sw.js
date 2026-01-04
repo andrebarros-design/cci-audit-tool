@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cci-audit-v4';
+const CACHE_NAME = 'cci-audit-v6';
 const ASSETS = [
     './',
     './index.html',
